@@ -1,6 +1,6 @@
 # SIH26262: AICTE Approval Workflow Automation, Compliance Monitoring and Alert Management System
 
-A web platform that moves AICTE approval applications through configurable stages, watches deadlines, schedules Expert Visit Committees (EVC), tracks institutional undertakings and document validity, and raises reminders and escalations automatically.
+A Web platform that moves AICTE approval applications through configurable stages, watches deadlines, schedules Expert Visit Committees (EVC), tracks institutional undertakings and document validity, and raises reminders and escalations automatically.
 
 **Stack:** React · Vite · Tailwind CSS · React Router · Axios · Recharts · FastAPI · Pydantic · SQLAlchemy · Supabase (Postgres + Auth + Storage) · pytest · Vitest
 
