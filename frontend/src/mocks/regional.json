@@ -1,0 +1,69 @@
+{
+  "regional_summary": [
+    { "region": "NORTH", "pending_count": 28, "overdue_count": 6, "evc_scheduled": 9, "avg_days": 14.2, "high_risk_count": 4 },
+    { "region": "WEST", "pending_count": 34, "overdue_count": 9, "evc_scheduled": 12, "avg_days": 18.5, "high_risk_count": 7 },
+    { "region": "SOUTH", "pending_count": 42, "overdue_count": 4, "evc_scheduled": 15, "avg_days": 11.8, "high_risk_count": 2 },
+    { "region": "EAST", "pending_count": 19, "overdue_count": 3, "evc_scheduled": 6, "avg_days": 13.1, "high_risk_count": 2 },
+    { "region": "CENTRAL", "pending_count": 15, "overdue_count": 2, "evc_scheduled": 4, "avg_days": 12.0, "high_risk_count": 1 }
+  ],
+  "officers_workload": [
+    {
+      "id": "off-1",
+      "name": "Dr. Ramesh Sharma",
+      "email": "ramesh.sharma@aicte-india.org",
+      "region": "NORTH",
+      "level": "SCRUTINY_OFFICER",
+      "active_queue": 12,
+      "overdue_count": 3,
+      "avg_completion_days": 7.4
+    },
+    {
+      "id": "off-2",
+      "name": "Suresh Raina",
+      "email": "suresh.raina@aicte-india.org",
+      "region": "NORTH",
+      "level": "SCRUTINY_OFFICER",
+      "active_queue": 8,
+      "overdue_count": 1,
+      "avg_completion_days": 6.8
+    },
+    {
+      "id": "off-3",
+      "name": "Priya Patel",
+      "email": "priya.patel@aicte-india.org",
+      "region": "WEST",
+      "level": "REGIONAL_HEAD",
+      "active_queue": 18,
+      "overdue_count": 5,
+      "avg_completion_days": 9.1
+    },
+    {
+      "id": "off-4",
+      "name": "Anil Deshmukh",
+      "email": "anil.d@aicte-india.org",
+      "region": "WEST",
+      "level": "SCRUTINY_OFFICER",
+      "active_queue": 11,
+      "overdue_count": 4,
+      "avg_completion_days": 8.9
+    },
+    {
+      "id": "off-5",
+      "name": "K. Venkatesh",
+      "email": "k.venkat@aicte-india.org",
+      "region": "SOUTH",
+      "level": "SCRUTINY_OFFICER",
+      "active_queue": 14,
+      "overdue_count": 2,
+      "avg_completion_days": 6.1
+    }
+  ],
+  "national_kpis": {
+    "total_pan_india": 138,
+    "total_overdue": 24,
+    "pan_india_sla_breach_rate": "17.4%",
+    "evc_completed_this_cycle": 46,
+    "high_delay_risk_applications": 16,
+    "approval_conversion_rate": "89.2%"
+  }
+}

@@ -1,0 +1,80 @@
+[
+  {
+    "id": "doc-1",
+    "institution_id": "inst-1",
+    "institution_name": "Delhi Institute of Advanced Technology",
+    "region": "NORTH",
+    "title": "Fire & Life Safety Certificate",
+    "document_type": "FIRE_NOC",
+    "valid_from": "2025-10-25T00:00:00Z",
+    "valid_until": "2026-10-25T00:00:00Z",
+    "days_remaining": 0,
+    "status": "EXPIRED",
+    "storage_path": "https://storage.supabase.co/aicte/docs/fire_noc_2025.pdf"
+  },
+  {
+    "id": "doc-2",
+    "institution_id": "inst-2",
+    "institution_name": "Pune College of Engineering & Research",
+    "region": "WEST",
+    "title": "State Pollution Control Board Clearance",
+    "document_type": "POLLUTION_CLEARANCE",
+    "valid_from": "2024-11-15T00:00:00Z",
+    "valid_until": "2026-11-15T00:00:00Z",
+    "days_remaining": 21,
+    "status": "EXPIRING_SOON",
+    "storage_path": "https://storage.supabase.co/aicte/docs/mpcb_clearance_pune.pdf"
+  },
+  {
+    "id": "doc-3",
+    "institution_id": "inst-3",
+    "institution_name": "Bangalore National Institute of Science",
+    "region": "SOUTH",
+    "title": "Affiliating University Provisional Approval Order",
+    "document_type": "AFFILIATION_ORDER",
+    "valid_from": "2026-06-01T00:00:00Z",
+    "valid_until": "2027-05-31T00:00:00Z",
+    "days_remaining": 218,
+    "status": "VALID",
+    "storage_path": "https://storage.supabase.co/aicte/docs/vtu_affiliation_2026.pdf"
+  },
+  {
+    "id": "doc-4",
+    "institution_id": "inst-4",
+    "institution_name": "Kolkata Technical University Campus",
+    "region": "EAST",
+    "title": "Municipal Corporation Approved Building Plan",
+    "document_type": "BUILDING_PLAN",
+    "valid_from": "2022-01-01T00:00:00Z",
+    "valid_until": "2032-01-01T00:00:00Z",
+    "days_remaining": 1894,
+    "status": "VALID",
+    "storage_path": "https://storage.supabase.co/aicte/docs/kmc_sanctioned_plan.pdf"
+  },
+  {
+    "id": "doc-5",
+    "institution_id": "inst-5",
+    "institution_name": "Bhopal Institute of Technology & Science",
+    "region": "CENTRAL",
+    "title": "Occupancy & Structural Stability Certificate",
+    "document_type": "OCCUPANCY_CERT",
+    "valid_from": "2023-11-20T00:00:00Z",
+    "valid_until": "2026-11-20T00:00:00Z",
+    "days_remaining": 26,
+    "status": "EXPIRING_SOON",
+    "storage_path": "https://storage.supabase.co/aicte/docs/stability_cert_bhopal.pdf"
+  },
+  {
+    "id": "doc-6",
+    "institution_id": "inst-1",
+    "institution_name": "Delhi Institute of Advanced Technology",
+    "region": "NORTH",
+    "title": "Registered Trust Deed & Society Registration",
+    "document_type": "TRUST_DEED",
+    "valid_from": "2015-05-10T00:00:00Z",
+    "valid_until": "2035-05-10T00:00:00Z",
+    "days_remaining": 3118,
+    "status": "VALID",
+    "storage_path": "https://storage.supabase.co/aicte/docs/trust_deed_diat.pdf"
+  }
+]

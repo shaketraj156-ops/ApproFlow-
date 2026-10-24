@@ -1,0 +1,9 @@
+[
+  { "id": "1", "code": "SUBMITTED", "name": "Application Submitted", "sequence_order": 1, "sla_days": 5, "owner_role": "SCRUTINY_OFFICER", "next_stages": ["SCRUTINY"], "is_terminal": false, "active": true },
+  { "id": "2", "code": "SCRUTINY", "name": "Document Scrutiny", "sequence_order": 2, "sla_days": 10, "owner_role": "SCRUTINY_OFFICER", "next_stages": ["RE_SCRUTINY", "EVC", "DECIDED"], "is_terminal": false, "active": true },
+  { "id": "3", "code": "RE_SCRUTINY", "name": "Deficiency Re-Scrutiny", "sequence_order": 3, "sla_days": 7, "owner_role": "SCRUTINY_OFFICER", "next_stages": ["EVC", "DECIDED"], "is_terminal": false, "active": true },
+  { "id": "4", "code": "EVC", "name": "Expert Visit Committee", "sequence_order": 4, "sla_days": 15, "owner_role": "REGIONAL_HEAD", "next_stages": ["REGIONAL_COMMITTEE", "DECIDED"], "is_terminal": false, "active": true },
+  { "id": "5", "code": "REGIONAL_COMMITTEE", "name": "Regional Committee Review", "sequence_order": 5, "sla_days": 10, "owner_role": "REGIONAL_HEAD", "next_stages": ["SAC_SHC", "DECIDED"], "is_terminal": false, "active": true },
+  { "id": "6", "code": "SAC_SHC", "name": "Standing Hearing Committee", "sequence_order": 6, "sla_days": 10, "owner_role": "NATIONAL_HEAD", "next_stages": ["DECIDED"], "is_terminal": false, "active": true },
+  { "id": "7", "code": "DECIDED", "name": "Final Decision Recorded", "sequence_order": 7, "sla_days": 0, "owner_role": "NATIONAL_HEAD", "next_stages": [], "is_terminal": true, "requires_decision": true, "active": true }
+]
