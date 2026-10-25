@@ -62,7 +62,7 @@ export default {
         },
       },
       animation: {
-        fadeIn: 'fadeIn 0.35s ease-out both',
+        fadeIn: 'fadeIn 0.35s ease-out backwards',
         fade: 'fade 0.2s ease-out both',
         float: 'float 6s ease-in-out infinite',
         floatSlow: 'float 8s ease-in-out infinite',

@@ -29,3 +29,15 @@ export function daysUntil(dateInput, now = new Date()) {
 export function formatCount(value) {
   return value === null || value === undefined ? '—' : String(value);
 }
+
+/**
+ * The calendar date, as "YYYY-MM-DD", in India. A date-only string is returned unchanged; a full timestamp is
+ * read in IST. Visit dates are whole days, so the screen works with this form.
+ */
+export function istDateString(input) {
+  if (!input) return null;
+  if (typeof input === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input)) return input;
+  const date = input instanceof Date ? input : new Date(input);
+  if (Number.isNaN(date.getTime())) return null;
+  return dayFormatter.format(date);
+}

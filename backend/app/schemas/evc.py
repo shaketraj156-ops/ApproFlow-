@@ -13,6 +13,7 @@ class ExpertResponse(BaseModel):
     region: str
     active: bool
     current_load: int
+    max_visits_per_cycle: int = 5
 
 class EvcSuggestionRequest(BaseModel):
     application_id: UUID
@@ -46,6 +47,16 @@ class EvcRescheduleRequest(BaseModel):
 class EvcCancelRequest(BaseModel):
     reason: str = Field(min_length=3, max_length=1000)
 
+class EvcVisitExpertInfo(BaseModel):
+    """One member of a visit's committee, as shown on the EVC screen."""
+    id: UUID
+    name: str
+    email: str
+    domain: str
+    region: str
+    is_lead: bool = False
+    confirmed: bool = False
+
 class EvcVisitResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
@@ -54,3 +65,7 @@ class EvcVisitResponse(BaseModel):
     status: str
     remarks: Optional[str] = None
     created_at: datetime
+    application_number: Optional[str] = None
+    institution_name: Optional[str] = None
+    region: Optional[str] = None
+    experts: List[EvcVisitExpertInfo] = []

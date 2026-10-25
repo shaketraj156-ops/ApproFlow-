@@ -78,3 +78,42 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* ---------- Page transitions ----------
+   `backwards` fill: the start state shows during any delay, and nothing is left behind afterwards
+   (a leftover transform would break position: fixed inside the page). */
+@keyframes pageInRight { from { opacity: 0; transform: translateX(26px); } to { opacity: 1; transform: none; } }
+@keyframes pageInLeft  { from { opacity: 0; transform: translateX(-26px); } to { opacity: 1; transform: none; } }
+@keyframes pageInUp    { from { opacity: 0; transform: translateY(14px); }  to { opacity: 1; transform: none; } }
+@keyframes riseIn      { from { opacity: 0; transform: translateY(16px); }  to { opacity: 1; transform: none; } }
+
+.page-enter-right { animation: pageInRight 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.page-enter-left  { animation: pageInLeft 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.page-enter-up    { animation: pageInUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+
+/* The blocks of the page (hero, cards, tables) rise in one after another */
+.page-enter > div > * { animation: riseIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.page-enter > div > *:nth-child(1) { animation-delay: 30ms; }
+.page-enter > div > *:nth-child(2) { animation-delay: 90ms; }
+.page-enter > div > *:nth-child(3) { animation-delay: 150ms; }
+.page-enter > div > *:nth-child(4) { animation-delay: 210ms; }
+.page-enter > div > *:nth-child(5) { animation-delay: 270ms; }
+.page-enter > div > *:nth-child(n + 6) { animation-delay: 330ms; }
+
+/* A thin bar that runs across the top each time a page opens */
+@keyframes routeBar {
+  0%   { width: 0; opacity: 1; }
+  65%  { width: 88%; opacity: 1; }
+  100% { width: 100%; opacity: 0; }
+}
+.route-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  z-index: 70;
+  background: linear-gradient(90deg, #34d399, #059669);
+  box-shadow: 0 0 10px rgba(5, 150, 105, 0.55);
+  animation: routeBar 0.85s ease-out forwards;
+  pointer-events: none;
+}

@@ -1,521 +1,423 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  CalendarCheck, Users, ShieldAlert, CheckCircle2, Clock, 
-  MapPin, UserCheck, AlertTriangle, ChevronRight, PlusCircle, Building2
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  CalendarCheck, CalendarDays, List, Users, CheckCircle2, Clock, PlusCircle, MapPin, Building2,
+  Search, UserCheck, ShieldAlert, ChevronRight, Crown
 } from 'lucide-react';
 import { evcService } from '../../services/evcService';
-import { formatDate } from '../../utils/formatDate';
-import { Modal } from '../../components/common/Modal';
-import { KpiCard } from '../../components/common/KpiCard';
 import { RoleHero } from '../../components/common/RoleHero';
+import { KpiCard } from '../../components/common/KpiCard';
+import { EmptyState } from '../../components/common/EmptyState';
+import { Skeleton } from '../../components/common/Skeleton';
+import { ErrorBanner, apiErrorMessage } from '../../components/common/ErrorBanner';
 import { useToast } from '../../components/common/Toast';
 import { VisitStrip, dayKey } from '../../components/evc/VisitStrip';
+import { MonthCalendar } from '../../components/evc/MonthCalendar';
+import { VisitDetailModal } from '../../components/evc/VisitDetailModal';
+import { ScheduleWizard } from '../../components/evc/ScheduleWizard';
+import { formatDate } from '../../utils/formatDate';
+import { daysUntil, istDateString } from '../../utils/dates';
+
+const STATUS_FILTERS = [
+  { key: 'ALL', label: 'All' },
+  { key: 'PROPOSED', label: 'Awaiting confirmation' },
+  { key: 'CONFIRMED', label: 'Confirmed' },
+  { key: 'COMPLETED', label: 'Completed' },
+  { key: 'CANCELLED', label: 'Cancelled' },
+];
+
+const BLOCK = {
+  CONFIRMED: 'from-emerald-500 to-emerald-700',
+  PROPOSED: 'from-amber-400 to-orange-500',
+  COMPLETED: 'from-slate-500 to-slate-700',
+  CANCELLED: 'from-red-300 to-red-500',
+};
+const BADGE = {
+  CONFIRMED: { tone: 'bg-emerald-100 text-emerald-800', label: 'Confirmed', icon: CheckCircle2 },
+  PROPOSED: { tone: 'bg-amber-100 text-amber-800', label: 'Awaiting confirmation', icon: Clock },
+  COMPLETED: { tone: 'bg-slate-100 text-slate-700', label: 'Completed', icon: CheckCircle2 },
+  CANCELLED: { tone: 'bg-red-100 text-red-700', label: 'Cancelled', icon: ShieldAlert },
+};
+
+const part = (iso, opts) => new Intl.DateTimeFormat('en-IN', { timeZone: 'UTC', ...opts }).format(new Date(`${iso}T00:00:00Z`));
+const initials = (name = '') => name.replace(/^(Dr|Prof)\.?\s+/i, '').split(' ').map((w) => w[0]).slice(0, 2).join('');
+const AVATAR_TONES = ['from-emerald-400 to-teal-600', 'from-sky-400 to-blue-600', 'from-violet-400 to-indigo-600', 'from-amber-400 to-orange-600', 'from-rose-400 to-pink-600'];
+const toneFor = (id = '') => AVATAR_TONES[[...id].reduce((n, c) => n + c.charCodeAt(0), 0) % AVATAR_TONES.length];
+
+function relative(iso) {
+  const n = daysUntil(iso);
+  if (n === null) return '';
+  if (n === 0) return 'Today';
+  if (n === 1) return 'Tomorrow';
+  if (n === -1) return 'Yesterday';
+  return n > 0 ? `In ${n} days` : `${Math.abs(n)} days ago`;
+}
 
 export function Evc() {
   const toast = useToast();
-  const [dayFilter, setDayFilter] = useState(null);
-  const [statusFilter, setStatusFilter] = useState('ALL');
   const [visits, setVisits] = useState([]);
   const [experts, setExperts] = useState([]);
-  const [activeTab, setActiveTab] = useState('visits'); // 'visits' | 'experts'
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Wizard modal state
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
-  const [selectedApp, setSelectedApp] = useState({
-    id: 'e2222222-2222-2222-2222-222222222222',
-    appNo: 'AICTE-2026-10002',
-    institution: 'Pune College of Engineering & Research',
-    region: 'WEST'
-  });
-  const [targetDate, setTargetDate] = useState('2026-11-12');
-  const [committeeSize, setCommitteeSize] = useState(3);
-  const [suggestedProposals, setSuggestedProposals] = useState(null);
-  const [leadExpertId, setLeadExpertId] = useState('');
-  const [remarks, setRemarks] = useState('Comprehensive infrastructure and lab verification');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [clashWarning, setClashWarning] = useState(false);
+  const [tab, setTab] = useState('visits'); // visits | experts
+  const [view, setView] = useState('calendar'); // calendar | list
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [dayFilter, setDayFilter] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
+  const [wizard, setWizard] = useState({ open: false, date: null });
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const [region, setRegion] = useState('ALL');
+  const [query, setQuery] = useState('');
+  const [freeOnly, setFreeOnly] = useState(false);
 
-  async function loadData() {
-    setLoading(true);
+  const load = useCallback(async () => {
+    setError(null);
     try {
-      const [v, e] = await Promise.all([
-        evcService.getVisits(),
-        evcService.getExperts()
-      ]);
+      const [v, e] = await Promise.all([evcService.getVisits(), evcService.getExperts()]);
       setVisits(v || []);
       setExperts(e || []);
     } catch (err) {
-      console.error('Error loading EVC data:', err);
+      setError(apiErrorMessage(err, 'Could not load the EVC schedule.'));
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const today = istDateString(new Date());
+  const counts = useMemo(() => ({
+    ALL: visits.length,
+    ...Object.fromEntries(STATUS_FILTERS.slice(1).map((f) => [f.key, visits.filter((v) => v.status === f.key).length])),
+  }), [visits]);
+
+  const byStatus = useMemo(
+    () => visits.filter((v) => statusFilter === 'ALL' || v.status === statusFilter),
+    [visits, statusFilter]
+  );
+  const listed = useMemo(
+    () => byStatus
+      .filter((v) => !dayFilter || dayKey(new Date(v.scheduled_date)) === dayFilter)
+      .sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date)),
+    [byStatus, dayFilter]
+  );
+  const next = useMemo(
+    () => visits.filter((v) => ['PROPOSED', 'CONFIRMED'].includes(v.status) && v.scheduled_date >= today)
+      .sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))[0],
+    [visits, today]
+  );
+  const selected = visits.find((v) => v.id === selectedId) || null;
+
+  // The roster, with each expert's upcoming bookings worked out from the visits
+  const bookings = useMemo(() => {
+    const map = new Map();
+    visits.filter((v) => ['PROPOSED', 'CONFIRMED'].includes(v.status)).forEach((v) =>
+      v.experts.forEach((x) => map.set(x.id, [...(map.get(x.id) || []), v.scheduled_date].sort())));
+    return map;
+  }, [visits]);
+  const regions = useMemo(() => ['ALL', ...new Set(experts.map((e) => e.region))], [experts]);
+  const roster = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return experts
+      .filter((e) => region === 'ALL' || e.region === region)
+      .filter((e) => !freeOnly || (e.is_available && e.load_count < e.max_load))
+      .filter((e) => !q || [e.name, e.affiliation, e.specialization, e.email].some((t) => (t || '').toLowerCase().includes(q)))
+      .sort((a, b) => a.load_count / a.max_load - b.load_count / b.max_load);
+  }, [experts, region, query, freeOnly]);
+
+  function openWizard(date = null) {
+    setWizard({ open: true, date });
   }
 
-  async function handleGenerateProposal() {
+  async function quickConfirm(visit) {
     try {
-      const proposals = await evcService.suggestCommittee({
-        application_id: selectedApp.id,
-        target_date: targetDate,
-        committee_size: Number(committeeSize)
-      });
-      setSuggestedProposals(proposals);
-      if (proposals && proposals.length > 0 && proposals[0].experts.length > 0) {
-        setLeadExpertId(proposals[0].experts[0].id);
-        setClashWarning(proposals[0].clash_detected || false);
-      }
-    } catch (err) {
-      console.error('Failed to generate suggestions:', err);
-    }
-  }
-
-  async function handleScheduleConfirm() {
-    if (!suggestedProposals || suggestedProposals.length === 0) return;
-    setIsSubmitting(true);
-    try {
-      const currentProp = suggestedProposals[0];
-      const selectedExpertIds = currentProp.experts.map(exp => exp.id);
-      const lead = currentProp.experts.find(exp => exp.id === leadExpertId);
-
-      await evcService.scheduleVisit({
-        application_id: selectedApp.id,
-        application_number: selectedApp.appNo,
-        institution_name: selectedApp.institution,
-        region: selectedApp.region,
-        scheduled_date: targetDate,
-        expert_ids: selectedExpertIds,
-        lead_expert_id: leadExpertId,
-        lead_expert_name: lead ? `${lead.name} (${lead.affiliation})` : 'Lead Expert',
-        remarks
-      });
-
-      setIsWizardOpen(false);
-      setSuggestedProposals(null);
-      toast.success(`EVC visit proposed for ${selectedApp.appNo}. Confirm it to lock in the committee.`);
-      await loadData();
-    } catch (err) {
-      console.error('Failed to schedule visit:', err);
-      toast.error(err?.response?.data?.error?.message || 'Could not schedule the visit.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  async function handleConfirmVisit(visitId) {
-    try {
-      await evcService.confirmVisit(visitId);
+      await evcService.confirmVisit(visit.id);
       toast.success('Visit confirmed. The committee is locked in.');
-      await loadData();
+      await load();
     } catch (err) {
-      console.error('Failed to confirm visit:', err);
-      toast.error(err?.response?.data?.error?.message || 'Could not confirm the visit.');
+      toast.error(apiErrorMessage(err, 'Could not confirm the visit.'));
     }
   }
 
-  const confirmedCount = visits.filter(v => v.status === 'CONFIRMED').length;
-  const shownVisits = visits
-    .filter((v) => statusFilter === 'ALL' || v.status === statusFilter)
-    .filter((v) => !dayFilter || dayKey(new Date(v.scheduled_date)) === dayFilter)
-    .sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date));
-  const nextVisit = [...visits].filter((v) => v.status !== 'COMPLETED' && v.status !== 'CANCELLED')
-    .sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date))[0];
-  const proposedCount = visits.filter(v => v.status === 'PROPOSED').length;
+  const summary = loading
+    ? 'Loading the visit calendar…'
+    : visits.length === 0
+    ? 'No expert visits are scheduled yet. Nominate a committee to get started.'
+    : `${counts.CONFIRMED} visit${counts.CONFIRMED === 1 ? ' is' : 's are'} confirmed and ${counts.PROPOSED} awaiting confirmation.${next ? ` Next up: ${next.institution_name} on ${formatDate(next.scheduled_date, false)}.` : ''}`;
 
   return (
     <div className="space-y-6">
       <RoleHero
         loading={loading}
         context="EVC scheduler"
-        summary={
-          loading
-            ? 'Loading the visit calendar…'
-            : visits.length === 0
-            ? 'No expert visits are scheduled yet. Nominate a committee to get started.'
-            : `${confirmedCount} visit${confirmedCount === 1 ? ' is' : 's are'} confirmed and ${proposedCount} awaiting confirmation.${nextVisit ? ` Next up: ${nextVisit.institution_name} on ${formatDate(nextVisit.scheduled_date, false)}.` : ''}`
-        }
+        summary={summary}
+        ring={{
+          title: 'Visit pipeline',
+          centerValue: visits.length,
+          centerLabel: 'visits',
+          segments: [
+            { label: 'Confirmed', color: '#34d399', value: counts.CONFIRMED },
+            { label: 'Awaiting', color: '#fbbf24', value: counts.PROPOSED },
+            { label: 'Completed', color: '#94a3b8', value: counts.COMPLETED },
+          ],
+        }}
         actions={[
-          {
-            label: 'Nominate & schedule a visit',
-            icon: PlusCircle,
-            primary: true,
-            onClick: () => { setIsWizardOpen(true); handleGenerateProposal(); },
-          },
+          { label: 'Nominate & schedule a visit', icon: PlusCircle, primary: true, onClick: () => openWizard() },
         ]}
       />
 
+      {error && <ErrorBanner message={error} onRetry={load} />}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard title="Scheduled visits" value={visits.length} subtitle="All upcoming and past" icon={CalendarCheck} variant="brand" loading={loading} />
-        <KpiCard title="Confirmed" value={confirmedCount} subtitle="Committee locked in" icon={CheckCircle2} variant="success" loading={loading} />
-        <KpiCard title="Awaiting confirmation" value={proposedCount} subtitle="Proposed, not yet sealed" icon={Clock} variant="warning" loading={loading} />
-        <KpiCard title="Empanelled experts" value={experts.length} subtitle="In the roster" icon={Users} loading={loading} />
+        <KpiCard title="Confirmed" value={counts.CONFIRMED} subtitle="Committee locked in" icon={CheckCircle2} variant="success" loading={loading} />
+        <KpiCard title="Awaiting confirmation" value={counts.PROPOSED} subtitle="Proposed, not yet sealed" icon={Clock} variant="warning" loading={loading} />
+        <KpiCard title="Empanelled experts" value={experts.length} subtitle={`${experts.filter((e) => e.is_available).length} available now`} icon={Users} loading={loading} />
       </div>
 
-      {!loading && visits.length > 0 && <VisitStrip visits={visits} selected={dayFilter} onSelect={setDayFilter} />}
-
-      {/* Tabs */}
-      <div className="flex border-b border-slate-200 gap-4">
-        <button
-          onClick={() => setActiveTab('visits')}
-          className={`pb-3 text-sm font-bold border-b-2 transition ${
-            activeTab === 'visits'
-              ? 'border-emerald-600 text-emerald-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          Scheduled Visits ({visits.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('experts')}
-          className={`pb-3 text-sm font-bold border-b-2 transition ${
-            activeTab === 'experts'
-              ? 'border-emerald-600 text-emerald-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          Experts Roster & Availability Pool ({experts.length})
-        </button>
+      <div role="tablist" aria-label="EVC sections" className="flex gap-6 border-b border-slate-200">
+        {[
+          { key: 'visits', label: 'Visits', count: visits.length },
+          { key: 'experts', label: 'Experts roster', count: experts.length },
+        ].map((t) => (
+          <button
+            key={t.key} role="tab" id={`evc-tab-${t.key}`} aria-selected={tab === t.key} aria-controls={`evc-panel-${t.key}`}
+            onClick={() => setTab(t.key)}
+            className={`inline-flex items-center gap-2 pb-3 text-sm font-semibold transition border-b-2 -mb-px ${
+              tab === t.key ? 'border-emerald-600 text-emerald-800' : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            {t.label}
+            <span className={`px-1.5 min-w-5 text-center rounded-full text-[11px] font-bold ${tab === t.key ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'}`}>{t.count}</span>
+          </button>
+        ))}
       </div>
 
-      {/* Main Tab Content */}
-      {activeTab === 'visits' ? (
-        <div className="space-y-4">
-          {visits.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter visits by status">
-              {['ALL', 'CONFIRMED', 'PROPOSED', 'COMPLETED'].map((f) => (
+      {tab === 'visits' && (
+        <div role="tabpanel" id="evc-panel-visits" aria-labelledby="evc-tab-visits" className="space-y-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="inline-flex rounded-xl border border-slate-300 bg-white p-0.5" role="group" aria-label="View">
+              {[
+                { key: 'calendar', label: 'Calendar', icon: CalendarDays },
+                { key: 'list', label: 'List', icon: List },
+              ].map(({ key, label, icon: Icon }) => (
                 <button
-                  key={f}
-                  onClick={() => setStatusFilter(f)}
-                  aria-pressed={statusFilter === f}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
-                    statusFilter === f ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-300 hover:border-slate-400'
-                  }`}
+                  key={key} onClick={() => setView(key)} aria-pressed={view === key}
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[0.65rem] text-sm font-semibold transition ${view === key ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
                 >
-                  {f === 'ALL' ? 'All' : f.charAt(0) + f.slice(1).toLowerCase()}
+                  <Icon className="w-4 h-4" aria-hidden="true" /> {label}
                 </button>
               ))}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter visits by status">
+              {STATUS_FILTERS.filter((f) => f.key === 'ALL' || counts[f.key] > 0).map((f) => (
+                <button
+                  key={f.key} onClick={() => setStatusFilter(f.key)} aria-pressed={statusFilter === f.key}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
+                    statusFilter === f.key ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-300 hover:border-slate-400'
+                  }`}
+                >
+                  {f.label}
+                  <span className={`tabular-nums px-1.5 rounded-full text-[10px] ${statusFilter === f.key ? 'bg-white/20' : 'bg-slate-100'}`}>{counts[f.key]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="space-y-4" role="status" aria-label="Loading visits">
+              <Skeleton className="h-96 w-full" />
+            </div>
+          ) : view === 'calendar' ? (
+            <MonthCalendar
+              visits={byStatus}
+              onSelectVisit={(v) => setSelectedId(v.id)}
+              onPickDay={(iso) => openWizard(iso)}
+              onShowDay={(iso) => { setDayFilter(iso); setView('list'); }}
+            />
+          ) : (
+            <>
+              {visits.length > 0 && <VisitStrip visits={byStatus} selected={dayFilter} onSelect={setDayFilter} />}
+
               {dayFilter && (
                 <button onClick={() => setDayFilter(null)} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                  Showing {dayFilter} · clear
+                  Showing {formatDate(dayFilter, false)} · clear
                 </button>
               )}
-            </div>
-          )}
 
-          {visits.length === 0 ? (
-            <div className="bg-white p-12 text-center rounded-2xl border border-dashed border-slate-300 text-slate-500">
-              No EVC visits scheduled yet. Use "Nominate & schedule a visit" to create one.
-            </div>
-          ) : shownVisits.length === 0 ? (
-            <div className="bg-white p-12 text-center rounded-2xl border border-dashed border-slate-300 text-slate-500">
-              No visits match these filters.
-            </div>
-          ) : (
-            shownVisits.map((visit) => {
-              const isConfirmed = visit.status === 'CONFIRMED';
-              const isCompleted = visit.status === 'COMPLETED';
-              const when = new Date(visit.scheduled_date);
-              const block = isCompleted
-                ? 'from-slate-500 to-slate-700'
-                : isConfirmed
-                ? 'from-emerald-500 to-emerald-700'
-                : 'from-amber-400 to-orange-500';
-              const part = (opts) => new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', ...opts }).format(when);
+              {visits.length === 0 ? (
+                <EmptyState
+                  icon={CalendarDays} title="No visits scheduled yet" text="Nominate a committee and the engine will find a date when everyone is free."
+                  action={<button onClick={() => openWizard()} className="px-4 py-2 text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl">Nominate & schedule a visit</button>}
+                />
+              ) : listed.length === 0 ? (
+                <EmptyState icon={Search} title="No visits match these filters" text="Try another status or clear the day filter." />
+              ) : (
+                <ul className="space-y-4">
+                  {listed.map((visit) => {
+                    const badge = BADGE[visit.status] || BADGE.COMPLETED;
+                    const BadgeIcon = badge.icon;
+                    return (
+                      <li key={visit.id}>
+                        <article className="bg-white rounded-2xl border border-slate-200 shadow-card hover:shadow-md hover:-translate-y-0.5 transition overflow-hidden flex flex-col sm:flex-row">
+                          <div className={`bg-gradient-to-br ${BLOCK[visit.status] || BLOCK.COMPLETED} text-white sm:w-32 shrink-0 p-4 flex sm:flex-col items-center justify-center gap-3 sm:gap-0 text-center`}>
+                            <span className="text-[11px] font-bold uppercase tracking-widest text-white/80">{part(visit.scheduled_date, { month: 'short' })}</span>
+                            <span className="text-4xl font-extrabold leading-none tabular-nums">{part(visit.scheduled_date, { day: 'numeric' })}</span>
+                            <span className="text-xs font-semibold text-white/90 sm:mt-1">{part(visit.scheduled_date, { weekday: 'long' })}</span>
+                            <span className="text-[11px] text-white/75">{relative(visit.scheduled_date)}</span>
+                          </div>
 
-              return (
-                <article
-                  key={visit.id}
-                  className="bg-white rounded-2xl border border-slate-200 shadow-card hover:shadow-md hover:-translate-y-0.5 transition overflow-hidden flex flex-col sm:flex-row"
-                >
-                  <div className={`bg-gradient-to-br ${block} text-white sm:w-32 shrink-0 p-4 flex sm:flex-col items-center justify-center gap-3 sm:gap-0 text-center`}>
-                    <span className="text-[11px] font-bold uppercase tracking-widest text-white/80">{part({ month: 'short' })}</span>
-                    <span className="text-4xl font-extrabold leading-none tabular-nums">{part({ day: 'numeric' })}</span>
-                    <span className="text-xs font-semibold text-white/90 sm:mt-1">{part({ weekday: 'long' })}</span>
-                    <span className="text-[11px] text-white/75">{part({ hour: 'numeric', minute: '2-digit', hour12: true })} IST</span>
-                  </div>
+                          <div className="flex-1 p-5 min-w-0">
+                            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                              <div className="space-y-2 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-xs font-bold px-2.5 py-1 bg-slate-100 text-slate-800 rounded-lg">{visit.application_number}</span>
+                                  {visit.region && (
+                                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 bg-blue-50 text-blue-700 rounded-md">
+                                      <MapPin className="w-3 h-3" aria-hidden="true" /> {visit.region}
+                                    </span>
+                                  )}
+                                  <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-md ${badge.tone}`}>
+                                    <BadgeIcon className="w-3 h-3" aria-hidden="true" /> {badge.label}
+                                  </span>
+                                </div>
+                                <h3 className="text-base font-bold text-slate-900 flex items-center gap-1.5">
+                                  <Building2 className="w-4 h-4 text-slate-400 shrink-0" aria-hidden="true" />
+                                  <span className="truncate">{visit.institution_name}</span>
+                                </h3>
+                                {visit.remarks && <p className="text-xs text-slate-500 line-clamp-2 whitespace-pre-line">{visit.remarks}</p>}
+                              </div>
 
-                  <div className="flex-1 p-5 min-w-0">
-                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-                      <div className="space-y-2 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-bold px-2.5 py-1 bg-slate-100 text-slate-800 rounded-lg">{visit.application_number}</span>
-                          <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 bg-blue-50 text-blue-700 rounded-md">
-                            <MapPin className="w-3 h-3" aria-hidden="true" /> {visit.region}
-                          </span>
-                          <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-md ${
-                            isCompleted ? 'bg-slate-100 text-slate-700' : isConfirmed ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                          }`}>
-                            {isCompleted ? <CheckCircle2 className="w-3 h-3" aria-hidden="true" /> : isConfirmed ? <CheckCircle2 className="w-3 h-3" aria-hidden="true" /> : <Clock className="w-3 h-3" aria-hidden="true" />}
-                            {isCompleted ? 'Completed' : isConfirmed ? 'Confirmed' : 'Awaiting confirmation'}
-                          </span>
-                        </div>
-                        <h3 className="text-base font-bold text-slate-900 flex items-center gap-1.5">
-                          <Building2 className="w-4 h-4 text-slate-400 shrink-0" aria-hidden="true" />
-                          <span className="truncate">{visit.institution_name}</span>
-                        </h3>
-                        {visit.remarks && <p className="text-xs text-slate-500">{visit.remarks}</p>}
-                      </div>
-
-                      {!isConfirmed && !isCompleted && (
-                        <button
-                          onClick={() => handleConfirmVisit(visit.id)}
-                          className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm transition"
-                        >
-                          <CheckCircle2 className="w-4 h-4" aria-hidden="true" /> Confirm visit
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="mt-4 pt-4 border-t border-slate-100">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="flex -space-x-2" aria-hidden="true">
-                          {visit.experts?.map((exp, idx) => (
-                            <span
-                              key={exp.id || idx}
-                              className={`w-9 h-9 rounded-full border-2 border-white flex items-center justify-center text-[11px] font-bold ${
-                                exp.is_lead ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'
-                              }`}
-                            >
-                              {exp.name.replace(/^(Dr|Prof)\.?\s+/i, '').split(' ').map((w) => w[0]).slice(0, 2).join('')}
-                            </span>
-                          ))}
-                        </div>
-                        <span className="text-xs font-bold text-slate-700">
-                          Committee of {visit.experts?.length || 0}
-                        </span>
-                      </div>
-                      <ul className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5">
-                        {visit.experts?.map((exp, idx) => (
-                          <li
-                            key={exp.id || idx}
-                            className={`p-2.5 rounded-xl border text-xs ${
-                              exp.is_lead ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900' : 'bg-slate-50 border-slate-200/80 text-slate-800'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="font-bold truncate">{exp.name}</span>
-                              {exp.is_lead && (
-                                <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 bg-emerald-200 text-emerald-800 rounded">Lead</span>
-                              )}
+                              <div className="flex items-center gap-2 shrink-0">
+                                {visit.status === 'PROPOSED' && (
+                                  <button onClick={() => quickConfirm(visit)} className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm transition">
+                                    <CheckCircle2 className="w-4 h-4" aria-hidden="true" /> Confirm
+                                  </button>
+                                )}
+                                <button onClick={() => setSelectedId(visit.id)} aria-label={`Details for ${visit.institution_name}`} className="inline-flex items-center gap-1 px-3.5 py-2 text-sm font-semibold text-slate-700 border border-slate-300 hover:bg-slate-50 rounded-xl transition">
+                                  Details <ChevronRight className="w-4 h-4" aria-hidden="true" />
+                                </button>
+                              </div>
                             </div>
-                            <p className="text-[11px] text-slate-500 mt-0.5">{exp.affiliation}</p>
-                            <p className="text-[10px] text-slate-400 italic mt-0.5">{exp.specialization}</p>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </article>
-              );
-            })
+
+                            <div className="mt-4 pt-4 border-t border-slate-100 flex items-center gap-3">
+                              <div className="flex -space-x-2" aria-hidden="true">
+                                {visit.experts.map((exp) => (
+                                  <span key={exp.id} className={`w-9 h-9 rounded-full border-2 border-white flex items-center justify-center text-[11px] font-bold text-white bg-gradient-to-br ${exp.is_lead ? 'from-emerald-500 to-emerald-700' : toneFor(exp.id)}`}>
+                                    {initials(exp.name)}
+                                  </span>
+                                ))}
+                              </div>
+                              <p className="text-xs text-slate-600 min-w-0 truncate">
+                                <span className="font-semibold text-slate-800">Committee of {visit.experts.length}</span>
+                                {visit.experts.find((x) => x.is_lead) && <> · lead <span className="font-semibold">{visit.experts.find((x) => x.is_lead).name}</span></>}
+                              </p>
+                            </div>
+                          </div>
+                        </article>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </>
           )}
-        </div>
-      ) : (
-        /* Experts Pool Table */
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
-          <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900">National AICTE Experts Roster</h3>
-              <p className="text-xs text-slate-500">Autonomous balancing preventing committee member overload and bias</p>
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px]">
-                <tr>
-                  <th className="px-4 py-3">Expert Name</th>
-                  <th className="px-4 py-3">Affiliation / University</th>
-                  <th className="px-4 py-3">Specialization</th>
-                  <th className="px-4 py-3">Region</th>
-                  <th className="px-4 py-3">Current Load</th>
-                  <th className="px-4 py-3">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {experts.map((exp) => (
-                  <tr key={exp.id} className="hover:bg-slate-50/80">
-                    <td className="px-4 py-3 font-bold text-slate-900">
-                      {exp.name}
-                      <span className="block text-[11px] font-normal text-slate-400">{exp.email}</span>
-                    </td>
-                    <td className="px-4 py-3 text-slate-700 font-medium">{exp.affiliation}</td>
-                    <td className="px-4 py-3 text-slate-600">{exp.specialization}</td>
-                    <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 bg-slate-100 text-slate-700 font-semibold rounded">
-                        {exp.region}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                          <div 
-                            className={`h-full ${exp.load_count >= exp.max_load ? 'bg-rose-500' : 'bg-emerald-500'}`}
-                            style={{ width: `${(exp.load_count / exp.max_load) * 100}%` }}
-                          />
-                        </div>
-                        <span className="text-[11px] font-bold text-slate-600">
-                          {exp.load_count}/{exp.max_load}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      {exp.is_available ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                          <UserCheck className="w-3 h-3" /> Available
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
-                          <ShieldAlert className="w-3 h-3" /> Clashed/Unavailable
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         </div>
       )}
 
-      {/* Schedule Committee Wizard Modal */}
-      <Modal
-        isOpen={isWizardOpen}
-        onClose={() => setIsWizardOpen(false)}
-        title="Nominate & Schedule EVC Committee"
-        size="lg"
-      >
-        <div className="space-y-5">
-          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-            <span className="text-xs font-bold text-slate-500 uppercase">Target Application</span>
-            <div className="flex items-center justify-between mt-1">
-              <div>
-                <span className="font-bold text-slate-900 text-sm">{selectedApp.institution}</span>
-                <span className="text-xs text-slate-500 block">{selectedApp.appNo} · Region: {selectedApp.region}</span>
-              </div>
-              <span className="text-xs font-bold px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-lg">
-                Stage: EVC
-              </span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Proposed Inspection Date</label>
+      {tab === 'experts' && (
+        <div role="tabpanel" id="evc-panel-experts" aria-labelledby="evc-tab-experts" className="space-y-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative flex-1 min-w-[12rem] max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" aria-hidden="true" />
               <input
-                type="date"
-                value={targetDate}
-                onChange={(e) => setTargetDate(e.target.value)}
-                className="w-full text-xs border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                type="search" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search experts"
+                placeholder="Search name, university or field"
+                className="w-full pl-9 pr-3 py-2 text-sm bg-white border border-slate-300 rounded-xl placeholder:text-slate-400"
               />
             </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Committee Size</label>
-              <select
-                value={committeeSize}
-                onChange={(e) => setCommitteeSize(Number(e.target.value))}
-                className="w-full text-xs border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-              >
-                <option value={2}>2 Members (Standard Extension)</option>
-                <option value={3}>3 Members (New Course / Intake Increase)</option>
-                <option value={4}>4 Members (Establishment of New Institution)</option>
-              </select>
+            <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by region">
+              {regions.map((r) => (
+                <button key={r} onClick={() => setRegion(r)} aria-pressed={region === r}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${region === r ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-300 hover:border-slate-400'}`}>
+                  {r === 'ALL' ? 'All regions' : r}
+                </button>
+              ))}
             </div>
+            <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+              <input type="checkbox" checked={freeOnly} onChange={(e) => setFreeOnly(e.target.checked)} className="rounded text-emerald-600" />
+              Free to nominate only
+            </label>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Inspection Terms / Scope</label>
-            <input
-              type="text"
-              value={remarks}
-              onChange={(e) => setRemarks(e.target.value)}
-              className="w-full text-xs border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-              placeholder="e.g. Laboratory verification, faculty Aadhaar authentication, library holdings"
-            />
-          </div>
-
-          <div className="flex justify-between items-center pt-2">
-            <span className="text-xs font-bold text-slate-800">AICTE Autonomous Nomination Engine</span>
-            <button
-              type="button"
-              onClick={handleGenerateProposal}
-              className="text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg border border-emerald-200 transition"
-            >
-              Re-calculate Suggestions
-            </button>
-          </div>
-
-          {/* Proposal Preview Box */}
-          {suggestedProposals && suggestedProposals.length > 0 && (
-            <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-700">Recommended Committee Roster:</span>
-                {clashWarning ? (
-                  <span className="text-[11px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded flex items-center gap-1">
-                    <AlertTriangle className="w-3 h-3" /> 409 EVC_CLASH Detected
-                  </span>
-                ) : (
-                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" /> No Schedule Clashes
-                  </span>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                {suggestedProposals[0].experts.map((exp) => (
-                  <label 
-                    key={exp.id}
-                    className={`flex items-center justify-between p-2.5 rounded-lg border text-xs cursor-pointer ${
-                      leadExpertId === exp.id 
-                        ? 'bg-emerald-50 border-emerald-300' 
-                        : 'bg-white border-slate-200'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <input
-                        type="radio"
-                        name="leadExpert"
-                        checked={leadExpertId === exp.id}
-                        onChange={() => setLeadExpertId(exp.id)}
-                        className="text-emerald-600 focus:ring-emerald-500"
-                      />
-                      <div>
-                        <span className="font-bold text-slate-900">{exp.name}</span>
-                        <span className="text-slate-500 block text-[11px]">{exp.affiliation} · {exp.specialization}</span>
+          {loading ? (
+            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-44" />)}</div>
+          ) : roster.length === 0 ? (
+            <EmptyState icon={Users} title="No experts match" text="Try another region or clear the search." />
+          ) : (
+            <ul className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+              {roster.map((e) => {
+                const full = e.load_count >= e.max_load;
+                const pct = Math.min(100, Math.round((e.load_count / e.max_load) * 100));
+                const upcoming = bookings.get(e.id) || [];
+                return (
+                  <li key={e.id} className="bg-white rounded-2xl border border-slate-200 shadow-card hover:shadow-md hover:-translate-y-0.5 transition p-5">
+                    <div className="flex items-start gap-3">
+                      <span className={`w-12 h-12 shrink-0 rounded-full bg-gradient-to-br ${toneFor(e.id)} text-white flex items-center justify-center text-sm font-bold shadow-sm`}>{initials(e.name)}</span>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-sm font-bold text-slate-900 truncate">{e.name}</h3>
+                        <p className="text-xs text-slate-500 truncate">{e.affiliation || e.email}</p>
                       </div>
+                      {e.is_available ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shrink-0"><UserCheck className="w-3 h-3" aria-hidden="true" /> Available</span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200 shrink-0"><ShieldAlert className="w-3 h-3" aria-hidden="true" /> Unavailable</span>
+                      )}
                     </div>
-                    {leadExpertId === exp.id && (
-                      <span className="text-[10px] font-black uppercase text-emerald-800 bg-emerald-200 px-1.5 py-0.5 rounded">
-                        Selected as Lead
-                      </span>
-                    )}
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
 
-          <div className="flex justify-end space-x-3 pt-3 border-t border-slate-200">
-            <button
-              type="button"
-              onClick={() => setIsWizardOpen(false)}
-              className="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-semibold rounded-lg hover:bg-slate-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              disabled={isSubmitting || !suggestedProposals}
-              onClick={handleScheduleConfirm}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-semibold rounded-lg shadow-xs"
-            >
-              {isSubmitting ? 'Scheduling...' : 'Confirm Schedule & Issue Letters'}
-            </button>
-          </div>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">{e.specialization}</span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700"><MapPin className="w-3 h-3" aria-hidden="true" />{e.region}</span>
+                    </div>
+
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600 mb-1">
+                        <span>Visit load this cycle</span>
+                        <span className="tabular-nums">{e.load_count}/{e.max_load}</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-slate-100 overflow-hidden" role="progressbar" aria-valuemin={0} aria-valuemax={e.max_load} aria-valuenow={e.load_count} aria-label={`${e.name} visit load`}>
+                        <div className={`h-full rounded-full transition-all duration-500 ${full ? 'bg-red-500' : pct >= 80 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${pct}%` }} />
+                      </div>
+                      {full && <p className="mt-1 text-[11px] font-semibold text-red-700">At the limit, cannot be nominated.</p>}
+                    </div>
+
+                    <p className="mt-3 pt-3 border-t border-slate-100 text-[11px] text-slate-500 flex items-center gap-1.5">
+                      <CalendarDays className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
+                      {upcoming.length === 0 ? 'No upcoming visits' : `${upcoming.length} upcoming visit${upcoming.length === 1 ? '' : 's'} · next ${formatDate(upcoming[0], false)}`}
+                      {upcoming.length > 0 && <Crown className="hidden" aria-hidden="true" />}
+                    </p>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
-      </Modal>
+      )}
+
+      <VisitDetailModal
+        visit={selected}
+        isOpen={!!selected}
+        onClose={() => setSelectedId(null)}
+        onChanged={async () => { await load(); }}
+      />
+
+      <ScheduleWizard
+        isOpen={wizard.open}
+        initialDate={wizard.date}
+        onClose={() => setWizard({ open: false, date: null })}
+        onScheduled={async () => { setWizard({ open: false, date: null }); await load(); }}
+      />
     </div>
   );
 }

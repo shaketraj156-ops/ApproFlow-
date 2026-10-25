@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, Path
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from typing import List
 from uuid import UUID
 
 from app.models.base import get_db
-from app.models.entities import Expert, EvcVisit
+from app.models.entities import Expert, EvcVisit, EvcVisitExpert, Application
 from app.schemas.evc import (
     ExpertResponse, EvcSuggestionRequest, EvcProposalResponse,
-    EvcCreateRequest, EvcVisitResponse, EvcRescheduleRequest, EvcCancelRequest
+    EvcCreateRequest, EvcVisitResponse, EvcRescheduleRequest, EvcCancelRequest, EvcVisitExpertInfo
 )
 from app.core.security import CurrentUser, get_current_user
 from app.core.permissions import require_roles
@@ -26,6 +26,31 @@ router = APIRouter(
     tags=["EVC Scheduling"],
     dependencies=[Depends(require_roles(READ_ROLES))],
 )
+
+
+def _visit_response(visit: EvcVisit) -> EvcVisitResponse:
+    """A visit together with its institution and committee, so the screen needs no further calls."""
+    app = visit.application
+    institution = app.institution if app else None
+    return EvcVisitResponse(
+        id=visit.id,
+        application_id=visit.application_id,
+        scheduled_date=visit.scheduled_date,
+        status=visit.status,
+        remarks=visit.remarks,
+        created_at=visit.created_at,
+        application_number=app.application_number if app else None,
+        institution_name=institution.name if institution else None,
+        region=app.region if app else None,
+        experts=[
+            EvcVisitExpertInfo(
+                id=link.expert.id, name=link.expert.name, email=link.expert.email,
+                domain=link.expert.domain, region=link.expert.region,
+                is_lead=link.is_lead, confirmed=link.confirmed,
+            )
+            for link in visit.experts if link.expert is not None
+        ],
+    )
 
 
 def _audit(db: Session, user: CurrentUser, visit: EvcVisit, action: str) -> None:
@@ -62,8 +87,16 @@ def suggest_evc(
 
 @router.get("", response_model=List[EvcVisitResponse])
 def list_evc_visits(db: Session = Depends(get_db)):
-    visits = db.query(EvcVisit).order_by(EvcVisit.scheduled_date.asc()).all()
-    return [EvcVisitResponse.model_validate(v) for v in visits]
+    visits = (
+        db.query(EvcVisit)
+        .options(
+            selectinload(EvcVisit.experts).selectinload(EvcVisitExpert.expert),
+            selectinload(EvcVisit.application).selectinload(Application.institution),
+        )
+        .order_by(EvcVisit.scheduled_date.asc())
+        .all()
+    )
+    return [_visit_response(v) for v in visits]
 
 @router.post("", response_model=EvcVisitResponse, status_code=201)
 def schedule_evc_visit(
@@ -80,7 +113,7 @@ def schedule_evc_visit(
         remarks=payload.remarks,
     )
     _audit(db, current_user, visit, "CREATE")
-    return EvcVisitResponse.model_validate(visit)
+    return _visit_response(visit)
 
 @router.post("/{id}/confirm", response_model=EvcVisitResponse)
 def confirm_visit(
@@ -90,7 +123,7 @@ def confirm_visit(
 ):
     visit = confirm_evc_visit(db, id)
     _audit(db, current_user, visit, "CONFIRM")
-    return EvcVisitResponse.model_validate(visit)
+    return _visit_response(visit)
 
 @router.post("/{id}/reschedule", response_model=EvcVisitResponse)
 def reschedule_visit(
@@ -101,7 +134,7 @@ def reschedule_visit(
 ):
     visit = reschedule_evc_visit(db, id, payload.scheduled_date, payload.remarks)
     _audit(db, current_user, visit, "RESCHEDULE")
-    return EvcVisitResponse.model_validate(visit)
+    return _visit_response(visit)
 
 @router.post("/{id}/cancel", response_model=EvcVisitResponse)
 def cancel_visit(
@@ -112,7 +145,7 @@ def cancel_visit(
 ):
     visit = cancel_evc_visit(db, id, payload.reason)
     _audit(db, current_user, visit, "CANCEL")
-    return EvcVisitResponse.model_validate(visit)
+    return _visit_response(visit)
 
 @router.post("/{id}/complete", response_model=EvcVisitResponse)
 def complete_visit(
@@ -122,7 +155,7 @@ def complete_visit(
 ):
     visit = complete_evc_visit(db, id)
     _audit(db, current_user, visit, "COMPLETE")
-    return EvcVisitResponse.model_validate(visit)
+    return _visit_response(visit)
 
 
 # GET /experts, as listed in the API contract.

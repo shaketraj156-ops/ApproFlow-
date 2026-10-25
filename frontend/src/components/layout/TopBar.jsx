@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { LogOut, Menu, Search, Clock, MapPin, ChevronDown, X } from 'lucide-react';
@@ -201,6 +201,7 @@ export function TopBar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const tabsRef = useRef(null);
+  const [indicator, setIndicator] = useState({ visible: false, left: 0, width: 0 });
 
   const showAlerts = ['aicte_officer', 'system_admin'].includes(user?.role);
 
@@ -215,6 +216,30 @@ export function TopBar() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  // Place the sliding highlight under the active tab, and move it whenever the page, the badges or the size change.
+  useLayoutEffect(() => {
+    const root = tabsRef.current;
+    if (!root) return undefined;
+    const place = () => {
+      const active = root.querySelector('a[aria-current="page"]');
+      if (!active) {
+        setIndicator((i) => (i.visible ? { ...i, visible: false } : i));
+        return;
+      }
+      const r = root.getBoundingClientRect();
+      const a = active.getBoundingClientRect();
+      setIndicator({ visible: true, left: a.left - r.left, width: a.width });
+    };
+    place();
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(place) : null;
+    observer?.observe(root);
+    window.addEventListener('resize', place);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', place);
+    };
+  }, [location.pathname, badges, sections.length]);
 
   // Close the mobile menu when the page changes, and keep the active tab in view on narrow desktops.
   useEffect(() => {
@@ -258,40 +283,62 @@ export function TopBar() {
         </div>
       </div>
 
-      <nav aria-label="Main" className="hidden lg:block border-t border-slate-100 bg-white">
-        <div ref={tabsRef} className="max-w-[1500px] mx-auto px-4 sm:px-6 flex items-stretch gap-1 overflow-x-auto no-scrollbar">
-          {sections.map((section, i) => (
-            <React.Fragment key={section.title}>
-              {i > 0 && <span className="self-center w-px h-5 bg-slate-200 mx-2 shrink-0" aria-hidden="true" />}
-              <ul aria-label={section.title} className="flex items-stretch gap-0.5">
-                {section.links.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <li key={item.to} className="flex">
-                      <NavLink
-                        to={item.to}
-                        className={({ isActive }) =>
-                          `group relative inline-flex items-center gap-2 px-3 py-3 text-[13px] whitespace-nowrap border-b-2 transition ${
-                            isActive
-                              ? 'text-emerald-800 font-semibold border-emerald-600 bg-gradient-to-t from-emerald-50 to-transparent'
-                              : 'text-slate-600 font-medium border-transparent hover:text-slate-900 hover:border-slate-300 hover:bg-slate-50'
-                          }`
-                        }
-                      >
-                        {({ isActive }) => (
-                          <>
-                            <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-emerald-600' : 'text-slate-400 group-hover:text-emerald-600'}`} aria-hidden="true" />
-                            {item.label}
-                            <Badge badge={badges[item.to]} />
-                          </>
-                        )}
-                      </NavLink>
-                    </li>
-                  );
-                })}
-              </ul>
-            </React.Fragment>
-          ))}
+      <nav aria-label="Main" className="hidden lg:block border-t border-slate-100 bg-gradient-to-b from-white to-slate-50/60">
+        <div className="overflow-x-auto no-scrollbar">
+          <div className="max-w-[1500px] mx-auto">
+            <div ref={tabsRef} className="relative flex items-stretch gap-1 w-max min-w-full px-4 sm:px-6 py-1.5">
+              {indicator.visible && (
+                <>
+                  {/* the soft highlight and the bar under it both glide to the tab you open */}
+                  <span
+                    aria-hidden="true"
+                    className="absolute top-1.5 bottom-1.5 rounded-xl bg-emerald-50 ring-1 ring-emerald-100 shadow-xs transition-[left,width] duration-300 ease-out"
+                    style={{ left: indicator.left, width: indicator.width }}
+                  />
+                  <span
+                    aria-hidden="true"
+                    className="absolute -bottom-1.5 h-[3px] rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-[left,width] duration-300 ease-out"
+                    style={{ left: indicator.left + 14, width: Math.max(indicator.width - 28, 8) }}
+                  />
+                </>
+              )}
+              {sections.map((section, i) => (
+                <React.Fragment key={section.title}>
+                  {i > 0 && <span className="self-center w-px h-5 bg-slate-200 mx-2 shrink-0" aria-hidden="true" />}
+                  <ul aria-label={section.title} className="flex items-stretch gap-0.5">
+                    {section.links.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <li key={item.to} className="flex">
+                          <NavLink
+                            to={item.to}
+                            className={({ isActive }) =>
+                              `group relative z-10 inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-[13px] whitespace-nowrap transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                                isActive
+                                  ? 'text-emerald-800 font-semibold'
+                                  : 'text-slate-600 font-medium hover:text-slate-900 hover:bg-white hover:shadow-xs'
+                              }`
+                            }
+                          >
+                            {({ isActive }) => (
+                              <>
+                                <Icon
+                                  className={`w-4 h-4 shrink-0 transition duration-200 group-hover:-translate-y-0.5 group-hover:scale-110 ${isActive ? 'text-emerald-600' : 'text-slate-400 group-hover:text-emerald-600'}`}
+                                  aria-hidden="true"
+                                />
+                                {item.label}
+                                <Badge badge={badges[item.to]} />
+                              </>
+                            )}
+                          </NavLink>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
         </div>
       </nav>
 

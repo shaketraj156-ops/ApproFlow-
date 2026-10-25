@@ -249,3 +249,34 @@ def test_kpis_ignore_applications_on_hold(as_user, make_application):
     kpis = as_user().get("/api/v1/reports/kpis").json()
     assert kpis["pending_actions"] == 2   # both are still open files
     assert kpis["overdue_count"] == 1     # but the paused one is not overdue
+
+
+def test_evc_visits_come_with_institution_and_committee(as_user, seed, make_application):
+    from datetime import timedelta
+    from app.core.clock import utcnow
+    app = make_application("EVC-1")
+    day = utcnow().date() + timedelta(days=3)
+    while day.weekday() == 6:
+        day += timedelta(days=1)
+    client = as_user()
+    experts = [str(e.id) for e in seed["experts"][:2]]
+    created = client.post("/api/v1/evc-visits", json={
+        "application_id": str(app.id), "scheduled_date": day.isoformat(),
+        "expert_ids": experts, "lead_expert_id": experts[0],
+    })
+    assert created.status_code == 201, created.text
+    body = created.json()
+    assert body["application_number"] == "EVC-1"
+    assert body["institution_name"] == "Test Institute"
+    assert body["region"] == "NORTH"
+    assert sorted(e["id"] for e in body["experts"]) == sorted(experts)
+    assert [e["is_lead"] for e in sorted(body["experts"], key=lambda e: e["id"] != experts[0])] == [True, False]
+
+    listed = client.get("/api/v1/evc-visits").json()
+    assert len(listed) == 1 and listed[0]["institution_name"] == "Test Institute" and len(listed[0]["experts"]) == 2
+
+    confirmed = client.post(f"/api/v1/evc-visits/{body['id']}/confirm").json()
+    assert confirmed["status"] == "CONFIRMED" and all(e["confirmed"] for e in confirmed["experts"])
+
+    roster = client.get("/api/v1/experts").json()
+    assert all("max_visits_per_cycle" in e for e in roster)

@@ -21,7 +21,7 @@ const today = (now = new Date()) =>
  * by name, says in one line what needs attention, and shows deadline health as a ring.
  * `actions` are buttons or links shown under the summary; `context` is a small line such as a region name.
  */
-export function RoleHero({ summary, health, loading = false, actions = [], context, children }) {
+export function RoleHero({ summary, health, ring, loading = false, actions = [], context, children }) {
   const { user } = useAuth();
   const theme = roleTheme(user);
   const now = new Date();
@@ -75,10 +75,14 @@ export function RoleHero({ summary, health, loading = false, actions = [], conte
           )}
         </div>
 
-        {health && (
+        {(health || ring) && (
           <div className="shrink-0 rounded-2xl bg-white/[0.07] border border-white/10 backdrop-blur-sm px-5 py-4">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-white/60 mb-3">Deadline health</p>
-            <HealthRing health={health} loading={loading} />
+            <p className="text-[11px] font-bold uppercase tracking-widest text-white/60 mb-3">{ring?.title ?? 'Deadline health'}</p>
+            {ring ? (
+              <HealthRing segments={ring.segments} centerValue={ring.centerValue} centerLabel={ring.centerLabel} loading={loading} />
+            ) : (
+              <HealthRing health={health} loading={loading} />
+            )}
           </div>
         )}
       </div>

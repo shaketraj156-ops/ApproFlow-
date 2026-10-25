@@ -11,9 +11,27 @@
       "remarks": "On-site infrastructure and laboratory verification",
       "lead_expert": "Prof. S. N. Deshmukh (IIT Bombay)",
       "experts": [
-        { "id": "exp-1", "name": "Prof. S. N. Deshmukh", "affiliation": "IIT Bombay", "specialization": "Computer Science & Engineering", "is_lead": true },
-        { "id": "exp-2", "name": "Dr. Meenakshi Sundaram", "affiliation": "VJTI Mumbai", "specialization": "Mechanical Engineering", "is_lead": false },
-        { "id": "exp-3", "name": "Prof. Arvind Joshi", "affiliation": "COEP Technological Univ.", "specialization": "Civil Engineering & Architecture", "is_lead": false }
+        {
+          "id": "exp-1",
+          "name": "Prof. S. N. Deshmukh",
+          "affiliation": "IIT Bombay",
+          "specialization": "Computer Science & Engineering",
+          "is_lead": true
+        },
+        {
+          "id": "exp-2",
+          "name": "Dr. Meenakshi Sundaram",
+          "affiliation": "VJTI Mumbai",
+          "specialization": "Mechanical Engineering",
+          "is_lead": false
+        },
+        {
+          "id": "exp-3",
+          "name": "Prof. Arvind Joshi",
+          "affiliation": "COEP Technological Univ.",
+          "specialization": "Civil Engineering & Architecture",
+          "is_lead": false
+        }
       ]
     },
     {
@@ -22,14 +40,32 @@
       "application_number": "AICTE-2026-10004",
       "institution_name": "Kolkata Technical University Campus",
       "region": "EAST",
-      "scheduled_date": "2026-11-08T09:30:00Z",
+      "scheduled_date": "2026-11-09T09:30:00Z",
       "status": "PROPOSED",
       "remarks": "New course intake physical verification for AI & Robotics Labs",
       "lead_expert": "Prof. Anupam Basu (IIT Kharagpur)",
       "experts": [
-        { "id": "exp-4", "name": "Prof. Anupam Basu", "affiliation": "IIT Kharagpur", "specialization": "Electronics & Electrical", "is_lead": true },
-        { "id": "exp-5", "name": "Dr. R. K. Mukherjee", "affiliation": "Jadavpur University", "specialization": "Mechanical & Mechatronics", "is_lead": false },
-        { "id": "exp-6", "name": "Dr. P. Sen", "affiliation": "IIEST Shibpur", "specialization": "Applied Sciences", "is_lead": false }
+        {
+          "id": "exp-4",
+          "name": "Prof. Anupam Basu",
+          "affiliation": "IIT Kharagpur",
+          "specialization": "Electronics & Electrical",
+          "is_lead": true
+        },
+        {
+          "id": "exp-5",
+          "name": "Dr. R. K. Mukherjee",
+          "affiliation": "Jadavpur University",
+          "specialization": "Mechanical & Mechatronics",
+          "is_lead": false
+        },
+        {
+          "id": "exp-6",
+          "name": "Dr. P. Sen",
+          "affiliation": "IIEST Shibpur",
+          "specialization": "Applied Sciences",
+          "is_lead": false
+        }
       ]
     },
     {
@@ -38,13 +74,25 @@
       "application_number": "AICTE-2026-10001",
       "institution_name": "Delhi Institute of Advanced Technology",
       "region": "NORTH",
-      "scheduled_date": "2026-10-18T10:00:00Z",
+      "scheduled_date": "2026-10-19T10:00:00Z",
       "status": "COMPLETED",
       "remarks": "Annual Extension Scrutiny Visit. Video log recorded and filed.",
       "lead_expert": "Prof. K. G. Suresh (IIT Delhi)",
       "experts": [
-        { "id": "exp-7", "name": "Prof. K. G. Suresh", "affiliation": "IIT Delhi", "specialization": "Electrical & Electronics", "is_lead": true },
-        { "id": "exp-8", "name": "Dr. Neha Aggarwal", "affiliation": "DTU Delhi", "specialization": "Computer Engineering", "is_lead": false }
+        {
+          "id": "exp-7",
+          "name": "Prof. K. G. Suresh",
+          "affiliation": "IIT Delhi",
+          "specialization": "Electrical & Electronics",
+          "is_lead": true
+        },
+        {
+          "id": "exp-8",
+          "name": "Dr. Neha Aggarwal",
+          "affiliation": "DTU Delhi",
+          "specialization": "Computer Engineering",
+          "is_lead": false
+        }
       ]
     }
   ],
@@ -135,6 +183,105 @@
       "region": "NORTH",
       "load_count": 1,
       "max_load": 4,
+      "is_available": true
+    },
+    {
+      "id": "exp-9",
+      "name": "Dr. Lakshmi Narayanan",
+      "email": "ln@nitt.example",
+      "affiliation": "NIT Tiruchirappalli",
+      "specialization": "Electronics & Communication",
+      "region": "SOUTH",
+      "load_count": 1,
+      "max_load": 5,
+      "is_available": true
+    },
+    {
+      "id": "exp-10",
+      "name": "Prof. K. Ramaswamy",
+      "email": "kr@iitm.example",
+      "affiliation": "IIT Madras",
+      "specialization": "Mechanical Engineering",
+      "region": "SOUTH",
+      "load_count": 2,
+      "max_load": 5,
+      "is_available": true
+    },
+    {
+      "id": "exp-11",
+      "name": "Dr. Anitha George",
+      "email": "ag@cusat.example",
+      "affiliation": "CUSAT Kochi",
+      "specialization": "Civil Engineering",
+      "region": "SOUTH",
+      "load_count": 0,
+      "max_load": 5,
+      "is_available": true
+    },
+    {
+      "id": "exp-12",
+      "name": "Prof. Suresh Babu",
+      "email": "sb@iisc.example",
+      "affiliation": "IISc Bengaluru",
+      "specialization": "Computer Science & AI",
+      "region": "SOUTH",
+      "load_count": 3,
+      "max_load": 5,
+      "is_available": true
+    },
+    {
+      "id": "exp-13",
+      "name": "Dr. Pradeep Sinha",
+      "email": "ps@iitk.example",
+      "affiliation": "IIT Kanpur",
+      "specialization": "Electrical Engineering",
+      "region": "NORTH",
+      "load_count": 1,
+      "max_load": 5,
+      "is_available": true
+    },
+    {
+      "id": "exp-14",
+      "name": "Prof. Rekha Malhotra",
+      "email": "rm@dtu.example",
+      "affiliation": "DTU Delhi",
+      "specialization": "Information Technology",
+      "region": "NORTH",
+      "load_count": 2,
+      "max_load": 5,
+      "is_available": true
+    },
+    {
+      "id": "exp-15",
+      "name": "Dr. Subrata Ghosh",
+      "email": "sg@jadavpur.example",
+      "affiliation": "Jadavpur University",
+      "specialization": "Chemical Engineering",
+      "region": "EAST",
+      "load_count": 1,
+      "max_load": 5,
+      "is_available": true
+    },
+    {
+      "id": "exp-16",
+      "name": "Dr. Vikram Kulkarni",
+      "email": "vk@coep.example",
+      "affiliation": "COEP Pune",
+      "specialization": "Production Engineering",
+      "region": "WEST",
+      "load_count": 1,
+      "max_load": 5,
+      "is_available": true
+    },
+    {
+      "id": "exp-17",
+      "name": "Prof. Neelam Joshi",
+      "email": "nj@vjti.example",
+      "affiliation": "VJTI Mumbai",
+      "specialization": "Electronics & Telecom",
+      "region": "WEST",
+      "load_count": 0,
+      "max_load": 5,
       "is_available": true
     }
   ]
