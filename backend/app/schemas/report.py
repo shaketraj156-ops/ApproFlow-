@@ -25,3 +25,21 @@ class BottleneckHeatmapItem(BaseModel):
     avg_days_in_stage: float
     breach_count: int
     breach_rate_pct: float
+
+class RegionSummaryItem(BaseModel):
+    region: str
+    pending_count: int
+    overdue_count: int
+    evc_scheduled: int
+    avg_days: float
+    high_risk_count: int
+
+class OfficerWorkloadItem(BaseModel):
+    id: str
+    name: str
+    email: str
+    region: Optional[str] = None
+    level: Optional[str] = None
+    active_queue: int
+    overdue_count: int
+    avg_completion_days: float

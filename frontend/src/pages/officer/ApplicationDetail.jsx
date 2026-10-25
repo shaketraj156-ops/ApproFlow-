@@ -1,235 +1,238 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, ArrowRight, CheckCircle2, Clock, AlertTriangle, 
-  FileText, Shield, Calendar, Send 
-} from 'lucide-react';
+import { ArrowLeft, ArrowRight, BellRing, ListChecks, Layers, PauseCircle, CheckCircle2 } from 'lucide-react';
 import { applicationsService } from '../../services/applicationsService';
 import { workflowService } from '../../services/workflowService';
+import { alertsService } from '../../services/alertsService';
 import { SlaChip } from '../../components/common/SlaChip';
 import { StatusBadge } from '../../components/common/StatusBadge';
-import { Modal } from '../../components/common/Modal';
+import { PriorityPill } from '../../components/common/PriorityPill';
+import { DelayRiskTag } from '../../components/common/DelayRiskTag';
+import { SeverityBadge } from '../../components/common/SeverityBadge';
+import { Panel } from '../../components/common/Panel';
+import { EmptyState } from '../../components/common/EmptyState';
+import { Skeleton, SkeletonCard } from '../../components/common/Skeleton';
+import { ErrorBanner, apiErrorMessage } from '../../components/common/ErrorBanner';
+import { useToast } from '../../components/common/Toast';
+import { StageTimeline } from '../../components/applications/StageTimeline';
+import { MoveStageModal } from '../../components/applications/MoveStageModal';
+import { allowedNextStages } from '../../utils/moveStage';
 import { formatDate } from '../../utils/formatDate';
+
+const TABS = [
+  { key: 'progress', label: 'Progress', icon: Layers },
+  { key: 'alerts', label: 'Alerts', icon: BellRing },
+];
 
 export function ApplicationDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
+
   const [app, setApp] = useState(null);
   const [stages, setStages] = useState([]);
-  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
-  const [targetStage, setTargetStage] = useState('');
-  const [remarks, setRemarks] = useState('');
-  const [decision, setDecision] = useState('APPROVED');
-  const [activeTab, setActiveTab] = useState('timeline');
-  const [errorMsg, setErrorMsg] = useState('');
+  const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [tab, setTab] = useState('progress');
+  const [moveOpen, setMoveOpen] = useState(false);
 
-  useEffect(() => {
-    async function load() {
-      const [appData, stageData] = await Promise.all([
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [appData, stageData, alertData] = await Promise.all([
         applicationsService.getApplicationById(id),
-        workflowService.getStages()
+        workflowService.getStages(),
+        // All statuses, so the Alerts tab shows the full history for this application.
+        Promise.all(['OPEN', 'ACKNOWLEDGED', 'RESOLVED'].map((status) => alertsService.getAlerts({ status, entity_id: id }))),
       ]);
       setApp(appData);
-      setStages(stageData);
+      setStages([...stageData].sort((a, b) => a.sequence_order - b.sequence_order));
+      setAlerts(alertData.flat().sort((a, b) => b.created_at.localeCompare(a.created_at)));
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Could not load this application.'));
+    } finally {
+      setLoading(false);
     }
-    load();
   }, [id]);
 
-  if (!app) {
-    return <div className="p-8 text-center text-slate-500">Loading application details...</div>;
+  useEffect(() => { load(); }, [load]);
+
+  const back = (
+    <button
+      onClick={() => navigate(-1)}
+      className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-slate-900 transition"
+    >
+      <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
+    </button>
+  );
+
+  if (loading) {
+    return (
+      <div className="space-y-6" role="status" aria-label="Loading application">
+        {back}
+        <SkeletonCard lines={2} />
+        <Skeleton className="h-28 w-full" />
+        <SkeletonCard lines={4} />
+      </div>
+    );
   }
 
-  const currentStageObj = stages.find(s => s.code === app.current_stage_code);
-  const allowedNext = currentStageObj?.next_stages || [];
+  if (error || !app) {
+    return (
+      <div className="space-y-6">
+        {back}
+        <ErrorBanner message={error || 'Application not found.'} onRetry={load} />
+      </div>
+    );
+  }
 
-  const handleMove = async (e) => {
-    e.preventDefault();
-    if (!targetStage) return;
-    try {
-      setErrorMsg('');
-      const updated = await applicationsService.moveStage(app.id, {
-        to_stage: targetStage,
-        notes: remarks,
-        decision: targetStage === 'DECIDED' ? decision : null
-      });
-      setApp(updated);
-      setIsMoveModalOpen(false);
-      setRemarks('');
-    } catch (err) {
-      setErrorMsg(err.response?.data?.error?.message || 'Failed to move stage');
-    }
-  };
+  const decided = !!app.decision;
+  const canMove = !decided && !app.is_on_hold && allowedNextStages(stages, app.current_stage_code).length > 0;
+  const currentStage = stages.find((s) => s.code === app.current_stage_code);
+  const openAlerts = alerts.filter((a) => a.status !== 'RESOLVED').length;
+
+  function handleMoved(updated, target) {
+    setApp(updated);
+    setMoveOpen(false);
+    toast.success(`${updated.application_number} moved to ${target?.name || updated.current_stage_code}.`);
+    load(); // the move changes this application's alerts
+  }
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Top Header */}
-      <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition"
-        >
-          <ArrowLeft className="w-4 h-4" /> Back to Queue
-        </button>
-        <div className="flex items-center space-x-3">
-          <SlaChip daysLeft={app.days_left} />
-          {allowedNext.length > 0 && (
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {back}
+        <div className="flex items-center gap-3">
+          <SlaChip daysLeft={app.days_left} onHold={app.is_on_hold} />
+          {canMove && (
             <button
-              onClick={() => {
-                setTargetStage(allowedNext[0] || '');
-                setIsMoveModalOpen(true);
-              }}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow-xs transition flex items-center space-x-1.5"
+              onClick={() => setMoveOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-xl shadow-sm transition"
             >
-              <span>Move to Next Stage</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              Move to next stage <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </button>
           )}
         </div>
       </div>
 
-      {/* Summary Card */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center space-x-3">
-              <h1 className="text-xl font-bold text-slate-900">{app.application_number}</h1>
-              <StatusBadge status={app.current_stage_code} />
-            </div>
-            <p className="text-xs text-slate-500 mt-1">
-              Institution: <strong className="text-slate-700">{app.institution_name || 'Technical Institute'}</strong> • Region: <strong className="text-slate-700">{app.region}</strong> • Type: <strong className="text-slate-700">{app.application_type}</strong>
-            </p>
-          </div>
-          <div className="flex items-center space-x-6 text-right">
-            <div>
-              <div className="text-[11px] text-slate-400 font-medium">Smart Priority Score</div>
-              <div className="text-xl font-black text-slate-800">{app.priority_score} / 100</div>
-            </div>
-            <div>
-              <div className="text-[11px] text-slate-400 font-medium">Deficiency Counter</div>
-              <div className="text-xl font-black text-slate-800">{app.deficiency_count}</div>
-            </div>
-          </div>
+      {app.is_on_hold && (
+        <div role="status" className="flex items-start gap-3 rounded-2xl border border-slate-300 bg-slate-100 px-4 py-3">
+          <PauseCircle className="w-5 h-5 text-slate-600 shrink-0 mt-0.5" aria-hidden="true" />
+          <p className="text-sm text-slate-800"><span className="font-semibold">On hold:</span> {app.hold_reason || 'No reason recorded.'} Resume it before moving stages.</p>
         </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="border-b border-slate-200">
-        <nav className="flex space-x-6 text-xs font-semibold">
-          {['timeline', 'undertakings', 'evc', 'activity'].map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`pb-3 capitalize transition ${activeTab === tab ? 'border-b-2 border-emerald-600 text-emerald-800 font-bold' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              {tab === 'evc' ? 'EVC Committee' : tab}
-            </button>
-          ))}
-        </nav>
-      </div>
-
-      {/* Tab 1: Timeline */}
-      {activeTab === 'timeline' && (
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
-          <h3 className="text-sm font-bold text-slate-900">Configured Stage Progression Pipeline</h3>
-          
-          <div className="relative pl-6 border-l-2 border-slate-200 space-y-8">
-            {stages.map((stg, idx) => {
-              const isCurrent = stg.code === app.current_stage_code;
-              const isPassed = stages.findIndex(s => s.code === app.current_stage_code) > idx;
-
-              return (
-                <div key={stg.code} className="relative">
-                  <div className={`absolute -left-[31px] top-0 w-4 h-4 rounded-full border-2 bg-white flex items-center justify-center ${isCurrent ? 'border-emerald-600 bg-emerald-600 ring-4 ring-emerald-100' : (isPassed ? 'border-emerald-500 bg-emerald-500' : 'border-slate-300')}`} />
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs font-bold text-slate-900">{stg.name}</span>
-                      {isCurrent && <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Active Stage</span>}
-                    </div>
-                    <p className="text-[11px] text-slate-500 mt-0.5">SLA Limit: {stg.sla_days} days • Owner Role: {stg.owner_role}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+      )}
+      {decided && (
+        <div role="status" className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" aria-hidden="true" />
+          <p className="text-sm text-emerald-900"><span className="font-semibold">Decision recorded:</span> {app.decision.replace(/_/g, ' ').toLowerCase()}. No further moves are possible.</p>
         </div>
       )}
 
-      {/* Move Stage Modal */}
-      <Modal
-        isOpen={isMoveModalOpen}
-        onClose={() => setIsMoveModalOpen(false)}
-        title={`Advance Workflow: ${app.application_number}`}
-      >
-        <form onSubmit={handleMove} className="space-y-4">
-          {errorMsg && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
-              {errorMsg}
+      <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-card">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-5">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-xl font-bold text-slate-900">{app.application_number}</h1>
+              <StatusBadge status={app.current_stage_code} />
+              <DelayRiskTag score={app.delay_risk_score} />
             </div>
-          )}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Select Destination Stage (Enforced State Machine)
-            </label>
-            <select
-              value={targetStage}
-              onChange={(e) => setTargetStage(e.target.value)}
-              className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            >
-              {allowedNext.map((stgCode) => (
-                <option key={stgCode} value={stgCode}>
-                  {stages.find(s => s.code === stgCode)?.name || stgCode}
-                </option>
-              ))}
-            </select>
+            <p className="text-sm text-slate-500 mt-1.5">
+              {app.institution_name && <><strong className="text-slate-700">{app.institution_name}</strong> · </>}
+              {app.region} region · {app.application_type?.replace(/_/g, ' ').toLowerCase()}
+            </p>
           </div>
-
-          {targetStage === 'DECIDED' && (
+          <dl className="flex items-center gap-8 shrink-0">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Final AICTE Decision
-              </label>
-              <select
-                value={decision}
-                onChange={(e) => setDecision(e.target.value)}
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500"
-              >
-                <option value="APPROVED">Approved</option>
-                <option value="APPROVED_WITH_CONDITIONS">Approved With Conditions</option>
-                <option value="REJECTED">Rejected</option>
-              </select>
+              <dt className="text-[11px] font-medium text-slate-400">Priority</dt>
+              <dd className="mt-1"><PriorityPill score={app.priority_score} /></dd>
             </div>
+            <div>
+              <dt className="text-[11px] font-medium text-slate-400">Deficiencies</dt>
+              <dd className="mt-0.5 text-xl font-bold text-slate-900 tabular-nums">{app.deficiency_count}</dd>
+            </div>
+            <div>
+              <dt className="text-[11px] font-medium text-slate-400">Intake</dt>
+              <dd className="mt-0.5 text-xl font-bold text-slate-900 tabular-nums">{app.intake_requested}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div className="mt-7 pt-6 border-t border-slate-100">
+          <StageTimeline stages={stages} currentCode={app.current_stage_code} decided={decided} onHold={app.is_on_hold} />
+        </div>
+      </section>
+
+      <div role="tablist" aria-label="Application sections" className="flex gap-6 border-b border-slate-200">
+        {TABS.map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            role="tab"
+            id={`tab-${key}`}
+            aria-selected={tab === key}
+            aria-controls={`panel-${key}`}
+            onClick={() => setTab(key)}
+            className={`inline-flex items-center gap-2 pb-3 text-sm font-semibold transition border-b-2 -mb-px ${
+              tab === key ? 'border-emerald-600 text-emerald-800' : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <Icon className="w-4 h-4" aria-hidden="true" /> {label}
+            {key === 'alerts' && alerts.length > 0 && (
+              <span className="px-1.5 min-w-5 text-center rounded-full bg-slate-200 text-slate-700 text-[11px] font-bold">{openAlerts || alerts.length}</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'progress' && (
+        <div role="tabpanel" id="panel-progress" aria-labelledby="tab-progress">
+          <Panel title="Where this application is" icon={ListChecks} subtitle="Stage rules come from the workflow configuration">
+            {currentStage ? (
+              <dl className="grid sm:grid-cols-3 gap-5 text-sm">
+                <div><dt className="text-xs text-slate-400">Current stage</dt><dd className="mt-0.5 font-semibold text-slate-900">{currentStage.name}</dd></div>
+                <div><dt className="text-xs text-slate-400">Stage deadline</dt><dd className="mt-0.5 font-semibold text-slate-900">{currentStage.sla_days} days</dd></div>
+                <div><dt className="text-xs text-slate-400">Owner role</dt><dd className="mt-0.5 font-semibold text-slate-900">{currentStage.owner_role?.replace(/_/g, ' ').toLowerCase()}</dd></div>
+                <div className="sm:col-span-3">
+                  <dt className="text-xs text-slate-400">Can move to</dt>
+                  <dd className="mt-1 flex flex-wrap gap-2">
+                    {allowedNextStages(stages, app.current_stage_code).map((s) => (
+                      <span key={s.code} className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">{s.name}</span>
+                    ))}
+                    {allowedNextStages(stages, app.current_stage_code).length === 0 && <span className="text-slate-500">End of the workflow</span>}
+                  </dd>
+                </div>
+              </dl>
+            ) : (
+              <p className="text-sm text-slate-500">This stage is not in the current workflow configuration.</p>
+            )}
+          </Panel>
+        </div>
+      )}
+
+      {tab === 'alerts' && (
+        <div role="tabpanel" id="panel-alerts" aria-labelledby="tab-alerts">
+          {alerts.length === 0 ? (
+            <EmptyState icon={BellRing} title="No alerts for this application" text="Reminders and escalations appear here when a deadline gets close or passes." />
+          ) : (
+            <ul className="space-y-3">
+              {alerts.map((alt) => (
+                <li key={alt.id} className="p-4 rounded-2xl border border-slate-200 bg-white shadow-card">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <SeverityBadge severity={alt.severity} />
+                    <StatusBadge status={alt.status} />
+                    <span className="text-xs text-slate-400">{formatDate(alt.created_at, true)}</span>
+                  </div>
+                  <p className="mt-2 text-sm font-bold text-slate-900">{alt.title}</p>
+                  <p className="text-sm text-slate-600 mt-0.5">{alt.message}</p>
+                </li>
+              ))}
+            </ul>
           )}
+        </div>
+      )}
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Reviewer Remarks / Outcome Notes
-            </label>
-            <textarea
-              rows={3}
-              value={remarks}
-              onChange={(e) => setRemarks(e.target.value)}
-              placeholder="e.g. Scrutiny documentation verified and approved for EVC inspection."
-              className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-
-          <div className="flex justify-end space-x-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setIsMoveModalOpen(false)}
-              className="px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs"
-            >
-              Confirm State Transition
-            </button>
-          </div>
-        </form>
-      </Modal>
+      <MoveStageModal isOpen={moveOpen} onClose={() => setMoveOpen(false)} application={app} stages={stages} onMoved={handleMoved} />
     </div>
   );
 }

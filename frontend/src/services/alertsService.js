@@ -3,10 +3,34 @@ import mockAlerts from '../mocks/alerts.json';
 
 const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true';
 
+// Fired after an alert changes status, so the bell in the navbar can refresh straight away.
+export const ALERTS_CHANGED_EVENT = 'approflow:alerts-changed';
+const announce = () => window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT));
+
+// Mock mode keeps its own copy so acknowledging an alert really moves it between tabs.
+const store = mockAlerts.map((a) => ({ ...a }));
+
+const delay = (value, ms = 250) => new Promise((resolve) => setTimeout(() => resolve(value), ms));
+
+function find(id) {
+  const alert = store.find((a) => a.id === id);
+  if (!alert) {
+    const err = new Error('Alert not found');
+    err.response = { status: 404, data: { error: { code: 'NOT_FOUND', message: 'Alert not found' } } };
+    throw err;
+  }
+  return alert;
+}
+
 export const alertsService = {
   async getAlerts(params = {}) {
     if (USE_MOCKS) {
-      return mockAlerts;
+      let items = store.map((a) => ({ ...a }));
+      if (params.status) items = items.filter((a) => a.status === params.status);
+      if (params.severity) items = items.filter((a) => a.severity === params.severity);
+      if (params.entity_id) items = items.filter((a) => a.entity_id === params.entity_id);
+      items.sort((a, b) => b.created_at.localeCompare(a.created_at));
+      return await delay(items);
     }
     const response = await axiosClient.get('/alerts', { params });
     return response.data;
@@ -14,11 +38,13 @@ export const alertsService = {
 
   async getSummary() {
     if (USE_MOCKS) {
+      const open = store.filter((a) => a.status === 'OPEN');
+      const acknowledged = store.filter((a) => a.status === 'ACKNOWLEDGED');
       return {
-        open_count: mockAlerts.length,
-        critical_count: mockAlerts.filter(a => a.severity === 'CRITICAL').length,
-        acknowledged_count: 0,
-        total_active: mockAlerts.length
+        open_count: open.length,
+        critical_count: open.filter((a) => a.severity === 'CRITICAL').length,
+        acknowledged_count: acknowledged.length,
+        total_active: open.length + acknowledged.length,
       };
     }
     const response = await axiosClient.get('/alerts/summary');
@@ -27,17 +53,29 @@ export const alertsService = {
 
   async acknowledgeAlert(id) {
     if (USE_MOCKS) {
-      return { success: true };
+      const alert = find(id);
+      alert.status = 'ACKNOWLEDGED';
+      alert.acknowledged_at = new Date().toISOString();
+      const result = await delay({ ...alert }, 150);
+      announce();
+      return result;
     }
     const response = await axiosClient.post(`/alerts/${id}/acknowledge`);
+    announce();
     return response.data;
   },
 
   async resolveAlert(id) {
     if (USE_MOCKS) {
-      return { success: true };
+      const alert = find(id);
+      alert.status = 'RESOLVED';
+      alert.resolved_at = new Date().toISOString();
+      const result = await delay({ ...alert }, 150);
+      announce();
+      return result;
     }
     const response = await axiosClient.post(`/alerts/${id}/resolve`);
+    announce();
     return response.data;
-  }
+  },
 };

@@ -1,0 +1,218 @@
+[
+  {
+    "region": "NORTH",
+    "stage_code": "SUBMITTED",
+    "stage_name": "Application Submitted",
+    "pending_count": 1,
+    "avg_days_in_stage": 0.0,
+    "breach_count": 0,
+    "breach_rate_pct": 0.0
+  },
+  {
+    "region": "SOUTH",
+    "stage_code": "SUBMITTED",
+    "stage_name": "Application Submitted",
+    "pending_count": 1,
+    "avg_days_in_stage": 1.0,
+    "breach_count": 0,
+    "breach_rate_pct": 0.0
+  },
+  {
+    "region": "EAST",
+    "stage_code": "SUBMITTED",
+    "stage_name": "Application Submitted",
+    "pending_count": 0,
+    "avg_days_in_stage": 0.0,
+    "breach_count": 0,
+    "breach_rate_pct": 0.0
+  },
+  {
+    "region": "WEST",
+    "stage_code": "SUBMITTED",
+    "stage_name": "Application Submitted",
+    "pending_count": 1,
+    "avg_days_in_stage": 5.0,
+    "breach_count": 0,
+    "breach_rate_pct": 0.0
+  },
+  {
+    "region": "NORTH",
+    "stage_code": "SCRUTINY",
+    "stage_name": "Document Scrutiny",
+    "pending_count": 3,
+    "avg_days_in_stage": 9.0,
+    "breach_count": 1,
+    "breach_rate_pct": 33.3
+  },
+  {
+    "region": "SOUTH",
+    "stage_code": "SCRUTINY",
+    "stage_name": "Document Scrutiny",
+    "pending_count": 3,
+    "avg_days_in_stage": 15.0,
+    "breach_count": 2,
+    "breach_rate_pct": 66.7
+  },
+  {
+    "region": "EAST",
+    "stage_code": "SCRUTINY",
+    "stage_name": "Document Scrutiny",
+    "pending_count": 2,
+    "avg_days_in_stage": 11.0,
+    "breach_count": 1,
+    "breach_rate_pct": 50.0
+  },
+  {
+    "region": "WEST",
+    "stage_code": "SCRUTINY",
+    "stage_name": "Document Scrutiny",
+    "pending_count": 1,
+    "avg_days_in_stage": 1.0,
+    "breach_count": 0,
+    "breach_rate_pct": 0.0
+  },
+  {
+    "region": "NORTH",
+    "stage_code": "RE_SCRUTINY",
+    "stage_name": "Deficiency Re-Scrutiny",
+    "pending_count": 1,
+    "avg_days_in_stage": 3.0,
+    "breach_count": 0,
+    "breach_rate_pct": 0.0
+  },
+  {
+    "region": "SOUTH",
+    "stage_code": "RE_SCRUTINY",
+    "stage_name": "Deficiency Re-Scrutiny",
+    "pending_count": 0,
+    "avg_days_in_stage": 0.0,
+    "breach_count": 0,
+    "breach_rate_pct": 0.0
+  },
+  {
+    "region": "EAST",
+    "stage_code": "RE_SCRUTINY",
+    "stage_name": "Deficiency Re-Scrutiny",
+    "pending_count": 2,
+    "avg_days_in_stage": 5.5,
+    "breach_count": 1,
+    "breach_rate_pct": 50.0
+  },
+  {
+    "region": "WEST",
+    "stage_code": "RE_SCRUTINY",
+    "stage_name": "Deficiency Re-Scrutiny",
+    "pending_count": 2,
+    "avg_days_in_stage": 8.5,
+    "breach_count": 1,
+    "breach_rate_pct": 50.0
+  },
+  {
+    "region": "NORTH",
+    "stage_code": "EVC",
+    "stage_name": "Expert Visit Committee",
+    "pending_count": 2,
+    "avg_days_in_stage": 17.0,
+    "breach_count": 1,
+    "breach_rate_pct": 50.0
+  },
+  {
+    "region": "SOUTH",
+    "stage_code": "EVC",
+    "stage_name": "Expert Visit Committee",
+    "pending_count": 2,
+    "avg_days_in_stage": 9.0,
+    "breach_count": 0,
+    "breach_rate_pct": 0.0
+  },
+  {
+    "region": "EAST",
+    "stage_code": "EVC",
+    "stage_name": "Expert Visit Committee",
+    "pending_count": 1,
+    "avg_days_in_stage": 4.0,
+    "breach_count": 0,
+    "breach_rate_pct": 0.0
+  },
+  {
+    "region": "WEST",
+    "stage_code": "EVC",
+    "stage_name": "Expert Visit Committee",
+    "pending_count": 2,
+    "avg_days_in_stage": 26.5,
+    "breach_count": 2,
+    "breach_rate_pct": 100.0
+  },
+  {
+    "region": "NORTH",
+    "stage_code": "REGIONAL_COMMITTEE",
+    "stage_name": "Regional Committee Review",
+    "pending_count": 0,
+    "avg_days_in_stage": 0.0,
+    "breach_count": 0,
+    "breach_rate_pct": 0.0
+  },
+  {
+    "region": "SOUTH",
+    "stage_code": "REGIONAL_COMMITTEE",
+    "stage_name": "Regional Committee Review",
+    "pending_count": 1,
+    "avg_days_in_stage": 5.0,
+    "breach_count": 0,
+    "breach_rate_pct": 0.0
+  },
+  {
+    "region": "EAST",
+    "stage_code": "REGIONAL_COMMITTEE",
+    "stage_name": "Regional Committee Review",
+    "pending_count": 2,
+    "avg_days_in_stage": 12.0,
+    "breach_count": 1,
+    "breach_rate_pct": 50.0
+  },
+  {
+    "region": "WEST",
+    "stage_code": "REGIONAL_COMMITTEE",
+    "stage_name": "Regional Committee Review",
+    "pending_count": 0,
+    "avg_days_in_stage": 0.0,
+    "breach_count": 0,
+    "breach_rate_pct": 0.0
+  },
+  {
+    "region": "NORTH",
+    "stage_code": "SAC_SHC",
+    "stage_name": "Standing Hearing Committee",
+    "pending_count": 0,
+    "avg_days_in_stage": 0.0,
+    "breach_count": 0,
+    "breach_rate_pct": 0.0
+  },
+  {
+    "region": "SOUTH",
+    "stage_code": "SAC_SHC",
+    "stage_name": "Standing Hearing Committee",
+    "pending_count": 1,
+    "avg_days_in_stage": 10.0,
+    "breach_count": 0,
+    "breach_rate_pct": 0.0
+  },
+  {
+    "region": "EAST",
+    "stage_code": "SAC_SHC",
+    "stage_name": "Standing Hearing Committee",
+    "pending_count": 1,
+    "avg_days_in_stage": 1.0,
+    "breach_count": 0,
+    "breach_rate_pct": 0.0
+  },
+  {
+    "region": "WEST",
+    "stage_code": "SAC_SHC",
+    "stage_name": "Standing Hearing Committee",
+    "pending_count": 0,
+    "avg_days_in_stage": 0.0,
+    "breach_count": 0,
+    "breach_rate_pct": 0.0
+  }
+]

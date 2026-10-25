@@ -1,10 +1,37 @@
 {
   "regional_summary": [
-    { "region": "NORTH", "pending_count": 28, "overdue_count": 6, "evc_scheduled": 9, "avg_days": 14.2, "high_risk_count": 4 },
-    { "region": "WEST", "pending_count": 34, "overdue_count": 9, "evc_scheduled": 12, "avg_days": 18.5, "high_risk_count": 7 },
-    { "region": "SOUTH", "pending_count": 42, "overdue_count": 4, "evc_scheduled": 15, "avg_days": 11.8, "high_risk_count": 2 },
-    { "region": "EAST", "pending_count": 19, "overdue_count": 3, "evc_scheduled": 6, "avg_days": 13.1, "high_risk_count": 2 },
-    { "region": "CENTRAL", "pending_count": 15, "overdue_count": 2, "evc_scheduled": 4, "avg_days": 12.0, "high_risk_count": 1 }
+    {
+      "region": "NORTH",
+      "pending_count": 7,
+      "overdue_count": 2,
+      "evc_scheduled": 1,
+      "avg_days": 9.1,
+      "high_risk_count": 2
+    },
+    {
+      "region": "SOUTH",
+      "pending_count": 8,
+      "overdue_count": 2,
+      "evc_scheduled": 2,
+      "avg_days": 9.9,
+      "high_risk_count": 3
+    },
+    {
+      "region": "EAST",
+      "pending_count": 8,
+      "overdue_count": 3,
+      "evc_scheduled": 1,
+      "avg_days": 7.8,
+      "high_risk_count": 4
+    },
+    {
+      "region": "WEST",
+      "pending_count": 6,
+      "overdue_count": 3,
+      "evc_scheduled": 2,
+      "avg_days": 12.7,
+      "high_risk_count": 4
+    }
   ],
   "officers_workload": [
     {

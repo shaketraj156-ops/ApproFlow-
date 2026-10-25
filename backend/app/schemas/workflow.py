@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Optional
 from uuid import UUID
 
@@ -14,10 +14,10 @@ class WorkflowStageBase(BaseModel):
     active: bool = True
 
 class WorkflowStageUpdate(BaseModel):
-    name: Optional[str] = None
-    sla_days: Optional[int] = None
-    owner_role: Optional[str] = None
-    next_stages: Optional[List[str]] = None
+    name: Optional[str] = Field(default=None, min_length=2, max_length=100)
+    sla_days: Optional[int] = Field(default=None, ge=0, le=365)
+    owner_role: Optional[str] = Field(default=None, min_length=2, max_length=50)
+    next_stages: Optional[List[str]] = Field(default=None, max_length=20)
     active: Optional[bool] = None
 
 class WorkflowStageResponse(WorkflowStageBase):

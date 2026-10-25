@@ -3,7 +3,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID, JSONB, ARRAY
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from app.core.clock import utcnow
 import uuid
 from app.models.base import Base
 
@@ -18,8 +18,8 @@ class Institution(Base):
     contact_email = Column(String(255), nullable=True)
     contact_phone = Column(String(50), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    updated_at = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
 
     applications = relationship("Application", back_populates="institution")
     documents = relationship("ComplianceDocument", back_populates="institution")
@@ -35,8 +35,8 @@ class Profile(Base):
     region = Column(String(50), nullable=True)
     institution_id = Column(UUID(as_uuid=True), ForeignKey("institutions.id"), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    updated_at = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
 
 class WorkflowStage(Base):
     __tablename__ = "workflow_stages"
@@ -51,8 +51,8 @@ class WorkflowStage(Base):
     is_terminal = Column(Boolean, default=False)
     requires_decision = Column(Boolean, default=False)
     active = Column(Boolean, default=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    updated_at = Column(DateTime(timezone=True), default=utcnow)
 
 class Application(Base):
     __tablename__ = "applications"
@@ -72,8 +72,8 @@ class Application(Base):
     decision = Column(String(50), nullable=True)
     decision_date = Column(DateTime(timezone=True), nullable=True)
     decision_remarks = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    updated_at = Column(DateTime(timezone=True), default=utcnow)
 
     institution = relationship("Institution", back_populates="applications")
     history = relationship("ApplicationStageHistory", back_populates="application", order_by="ApplicationStageHistory.entered_at")
@@ -87,12 +87,12 @@ class ApplicationStageHistory(Base):
     application_id = Column(UUID(as_uuid=True), ForeignKey("applications.id"), nullable=False)
     stage_code = Column(String(50), ForeignKey("workflow_stages.code"), nullable=False)
     owner_id = Column(UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
-    entered_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    entered_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
     due_at = Column(DateTime(timezone=True), nullable=False)
     exited_at = Column(DateTime(timezone=True), nullable=True)
     outcome = Column(String(50), nullable=True)
     notes = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
 
     application = relationship("Application", back_populates="history")
 
@@ -108,7 +108,7 @@ class Expert(Base):
     active = Column(Boolean, default=True, nullable=False)
     max_visits_per_cycle = Column(Integer, default=5, nullable=False)
     current_load = Column(Integer, default=0, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
 
 class ExpertUnavailability(Base):
     __tablename__ = "expert_unavailability"
@@ -118,7 +118,7 @@ class ExpertUnavailability(Base):
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=False)
     reason = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
 
 class EvcVisit(Base):
     __tablename__ = "evc_visits"
@@ -128,8 +128,8 @@ class EvcVisit(Base):
     scheduled_date = Column(Date, nullable=False)
     status = Column(String(50), default="PROPOSED", nullable=False)
     remarks = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    updated_at = Column(DateTime(timezone=True), default=utcnow)
 
     application = relationship("Application", back_populates="evc_visits")
     experts = relationship("EvcVisitExpert", back_populates="visit")
@@ -142,7 +142,7 @@ class EvcVisitExpert(Base):
     expert_id = Column(UUID(as_uuid=True), ForeignKey("experts.id"), nullable=False)
     is_lead = Column(Boolean, default=False, nullable=False)
     confirmed = Column(Boolean, default=False, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
 
     visit = relationship("EvcVisit", back_populates="experts")
     expert = relationship("Expert")
@@ -161,8 +161,8 @@ class Undertaking(Base):
     verified_by = Column(UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
     document_path = Column(Text, nullable=True)
     remarks = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    updated_at = Column(DateTime(timezone=True), default=utcnow)
 
     application = relationship("Application", back_populates="undertakings")
 
@@ -179,8 +179,8 @@ class ComplianceDocument(Base):
     status = Column(String(50), default="VALID", nullable=False)
     storage_path = Column(Text, nullable=True)
     verified = Column(Boolean, default=False, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    updated_at = Column(DateTime(timezone=True), default=utcnow)
 
     institution = relationship("Institution", back_populates="documents")
 
@@ -193,7 +193,7 @@ class AlertRule(Base):
     entity_type = Column(String(50), nullable=False)
     offsets_days = Column(ARRAY(Integer), nullable=False, default=[7, 3, 1])
     active = Column(Boolean, default=True, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
 
 class EscalationRule(Base):
     __tablename__ = "escalation_rules"
@@ -203,7 +203,7 @@ class EscalationRule(Base):
     overdue_days = Column(Integer, nullable=False)
     target_role = Column(String(50), nullable=False)
     active = Column(Boolean, default=True, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
 
 class Alert(Base):
     __tablename__ = "alerts"
@@ -223,7 +223,7 @@ class Alert(Base):
     acknowledged_at = Column(DateTime(timezone=True), nullable=True)
     acknowledged_by = Column(UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
     resolved_at = Column(DateTime(timezone=True), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
@@ -237,4 +237,4 @@ class AuditLog(Base):
     old_state = Column(JSONB, nullable=True)
     new_state = Column(JSONB, nullable=True)
     ip_address = Column(String(45), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=utcnow)

@@ -37,7 +37,12 @@ class NotFoundException(ApproFlowException):
 
 class ValidationErrorException(ApproFlowException):
     def __init__(self, message: str = "Invalid input data", details: Optional[Dict[str, Any]] = None):
-        super().__init__(status.HTTP_422_UNPROCESSABLE_ENTITY, "VALIDATION_ERROR", message, details)
+        super().__init__(422, "VALIDATION_ERROR", message, details)
+
+class ConflictException(ApproFlowException):
+    """The request is valid but conflicts with the current state (duplicate, wrong status, ...)."""
+    def __init__(self, message: str = "Request conflicts with the current state", details: Optional[Dict[str, Any]] = None):
+        super().__init__(status.HTTP_409_CONFLICT, "CONFLICT", message, details)
 
 class InvalidTransitionException(ApproFlowException):
     def __init__(self, message: str = "Requested workflow transition is invalid"):
@@ -50,3 +55,7 @@ class EvcClashException(ApproFlowException):
 class RateLimitedException(ApproFlowException):
     def __init__(self, message: str = "Too many requests. Please slow down"):
         super().__init__(status.HTTP_429_TOO_MANY_REQUESTS, "RATE_LIMITED", message)
+
+class ServiceUnavailableException(ApproFlowException):
+    def __init__(self, message: str = "Service temporarily unavailable"):
+        super().__init__(status.HTTP_503_SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE", message)

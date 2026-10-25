@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from typing import Any, Dict, Optional
 from uuid import UUID
 from datetime import datetime
+from app.core.clock import utcnow
 from app.models.entities import AuditLog
 
 def record_audit_log(
@@ -24,7 +25,7 @@ def record_audit_log(
         old_state=old_state,
         new_state=new_state,
         ip_address=ip_address,
-        created_at=datetime.utcnow()
+        created_at=utcnow()
     )
     db.add(log_entry)
     return log_entry

@@ -1,3 +1,4 @@
+import secrets
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import Dict, Any, Optional
@@ -14,9 +15,8 @@ def trigger_daily_checks(
     x_job_secret: Optional[str] = Header(None),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
-    # Allow local invocation or protect with secret header
-    if x_job_secret and x_job_secret != settings.JOB_SECRET:
-        raise ForbiddenException("Invalid X-Job-Secret header")
+    if not settings.JOB_SECRET or not x_job_secret or not secrets.compare_digest(x_job_secret, settings.JOB_SECRET):
+        raise ForbiddenException("Invalid or missing X-Job-Secret header")
 
     results = run_daily_checks_job(db)
     return {

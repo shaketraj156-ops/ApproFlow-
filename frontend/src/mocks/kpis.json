@@ -1,8 +1,8 @@
 {
-  "total_applications": 45,
-  "pending_actions": 25,
-  "overdue_count": 5,
-  "due_this_week": 8,
+  "total_applications": 32,
+  "pending_actions": 29,
+  "overdue_count": 10,
+  "due_this_week": 13,
   "avg_processing_days": 18.4,
   "evc_scheduled_count": 6
 }

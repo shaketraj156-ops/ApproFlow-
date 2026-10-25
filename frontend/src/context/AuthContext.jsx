@@ -10,19 +10,25 @@ export const ROLES = {
   ADMIN: 'system_admin'
 };
 
+// Fictional demo people, one per role.
+const DEMO_NAMES = {
+  aicte_officer: 'Rajesh Kumar (Section Officer)',
+  institution_admin: 'Meera Nair (Institution Admin)',
+  institution_staff: 'Arjun Das (Institution Staff)',
+  auditor: 'Kavita Rao (Auditor)',
+  system_admin: 'Anil Mehta (System Admin)',
+};
+
 export function AuthProvider({ children }) {
-  // Pre-configured mock officer user for rapid demo initialization
+  // Restore the demo session saved by loginAsRole. No saved session means signed out.
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('approflow_user');
-    return saved ? JSON.parse(saved) : {
-      id: '00000000-0000-0000-0000-000000000001',
-      email: 'officer.north@aicte.gov.in',
-      full_name: 'Rajesh Kumar (Section Officer)',
-      role: 'aicte_officer',
-      officer_level: 'SECTION_OFFICER',
-      region: 'NORTH',
-      institution_id: null
-    };
+    try {
+      const saved = localStorage.getItem('approflow_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      localStorage.removeItem('approflow_user'); // corrupted value: start signed out instead of crashing
+      return null;
+    }
   });
 
   const [loading, setLoading] = useState(false);
@@ -31,7 +37,7 @@ export function AuthProvider({ children }) {
     let mockProfile = {
       id: '00000000-0000-0000-0000-000000000001',
       email: `${role}@aicte.gov.in`,
-      full_name: `${role.replace('_', ' ').toUpperCase()} Demo User`,
+      full_name: DEMO_NAMES[role] || 'Demo User',
       role: role,
       officer_level: level,
       region: region,

@@ -1,9 +1,17 @@
 import React from 'react';
-import { Clock, AlertTriangle, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Clock, AlertTriangle, AlertCircle, CheckCircle2, PauseCircle } from 'lucide-react';
 import { formatDays } from '../../utils/formatDays';
 import { getSlaStyle } from '../../utils/severityStyles';
 
-export function SlaChip({ daysLeft }) {
+export function SlaChip({ daysLeft, onHold = false }) {
+  if (onHold) {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border bg-slate-100 text-slate-700 border-slate-300">
+        <PauseCircle className="w-3.5 h-3.5" aria-hidden="true" />
+        <span>On hold</span>
+      </span>
+    );
+  }
   const style = getSlaStyle(daysLeft);
   const text = formatDays(daysLeft);
 

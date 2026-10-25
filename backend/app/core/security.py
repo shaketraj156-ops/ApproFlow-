@@ -2,6 +2,7 @@ from fastapi import Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
 from typing import Optional, Dict, Any
+from uuid import UUID
 from app.core.config import settings
 from app.core.exceptions import UnauthenticatedException
 
@@ -22,20 +23,25 @@ class CurrentUser:
         self.role = role
         self.officer_level = officer_level
         self.region = region
-        self.institution_id = institution_id
+        # Compared against UUID columns, so keep it a UUID; a malformed value means "no institution".
+        try:
+            self.institution_id = UUID(str(institution_id)) if institution_id else None
+        except ValueError:
+            self.institution_id = None
 
 async def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_bearer),
 ) -> CurrentUser:
     if not credentials:
-        # Dev fallback for testing if no auth header provided
-        return CurrentUser(
-            id="00000000-0000-0000-0000-000000000001",
-            email="dev_admin@aicte.gov.in",
-            role="system_admin",
-            officer_level="NATIONAL_HEAD",
-            region="CENTRAL"
-        )
+        if settings.ALLOW_DEV_AUTH:
+            return CurrentUser(
+                id="00000000-0000-0000-0000-000000000001",
+                email="dev_admin@aicte.gov.in",
+                role="system_admin",
+                officer_level="NATIONAL_HEAD",
+                region="CENTRAL"
+            )
+        raise UnauthenticatedException("Missing Authorization header")
     
     token = credentials.credentials
     try:
@@ -45,16 +51,20 @@ async def get_current_user(
             algorithms=["HS256"],
             options={"verify_aud": False}
         )
-        user_metadata = payload.get("user_metadata", {})
-        app_metadata = payload.get("app_metadata", {})
-        
+        # user_metadata is editable by the user themselves in Supabase, so authorization
+        # attributes are read from app_metadata only (server-controlled).
+        app_metadata = payload.get("app_metadata") or {}
+        user_id = payload.get("sub")
+        if not user_id:
+            raise ValueError("token has no subject")
+
         return CurrentUser(
-            id=payload.get("sub"),
+            id=user_id,
             email=payload.get("email", ""),
-            role=user_metadata.get("role") or app_metadata.get("role", "aicte_officer"),
-            officer_level=user_metadata.get("officer_level", "SECTION_OFFICER"),
-            region=user_metadata.get("region", "NORTH"),
-            institution_id=user_metadata.get("institution_id")
+            role=app_metadata.get("role", "institution_staff"),
+            officer_level=app_metadata.get("officer_level"),
+            region=app_metadata.get("region"),
+            institution_id=app_metadata.get("institution_id")
         )
-    except Exception as e:
-        raise UnauthenticatedException(f"Invalid or expired authorization token: {str(e)}")
+    except Exception:
+        raise UnauthenticatedException("Invalid or expired authorization token")

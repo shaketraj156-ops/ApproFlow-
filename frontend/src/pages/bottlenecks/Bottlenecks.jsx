@@ -1,65 +1,115 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Flame, Grid3x3, AlertTriangle, Layers, ChevronRight, Trophy } from 'lucide-react';
 import { reportsService } from '../../services/reportsService';
-import { Flame, Info, AlertCircle } from 'lucide-react';
+import { RoleHero } from '../../components/common/RoleHero';
+import { KpiCard } from '../../components/common/KpiCard';
+import { Panel } from '../../components/common/Panel';
+import { EmptyState } from '../../components/common/EmptyState';
+import { ErrorBanner, apiErrorMessage } from '../../components/common/ErrorBanner';
+import { BottleneckHeatmap, HeatmapLegend } from '../../components/charts/BottleneckHeatmap';
+import { healthSegments } from '../../utils/health';
 
 export function Bottlenecks() {
-  const [bottlenecks, setBottlenecks] = useState([]);
+  const navigate = useNavigate();
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    reportsService.getBottlenecks().then(setBottlenecks);
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setRows((await reportsService.getBottlenecks()) || []);
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Could not load the bottleneck report.'));
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const getHeatmapColor = (breachRate) => {
-    if (breachRate >= 50) return 'bg-red-500 text-white';
-    if (breachRate >= 25) return 'bg-amber-400 text-amber-950';
-    if (breachRate > 0) return 'bg-amber-100 text-amber-800';
-    return 'bg-emerald-50 text-emerald-800';
-  };
+  useEffect(() => { load(); }, [load]);
+
+  const totals = useMemo(() => {
+    const pending = rows.reduce((a, r) => a + r.pending_count, 0);
+    const late = rows.reduce((a, r) => a + r.breach_count, 0);
+    return { pending, late, cells: rows.filter((r) => r.pending_count > 0).length };
+  }, [rows]);
+
+  // The worst places to be: most late applications first, then the longest average wait.
+  const hotSpots = useMemo(
+    () => rows
+      .filter((r) => r.breach_count > 0)
+      .sort((a, b) => b.breach_count - a.breach_count || b.avg_days_in_stage - a.avg_days_in_stage)
+      .slice(0, 3),
+    [rows]
+  );
+
+  const openList = ({ stage, region }) => navigate(`/officer/applications?${new URLSearchParams({ stage, region })}`);
+
+  const summary = loading
+    ? 'Loading the bottleneck picture…'
+    : totals.late === 0
+    ? 'Nothing is late in any stage or region right now.'
+    : `${totals.late} of ${totals.pending} open applications are late. The biggest pile-up is ${hotSpots[0].stage_name.toLowerCase()} in the ${hotSpots[0].region.toLowerCase()} region.`;
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      <div>
-        <div className="flex items-center space-x-2">
-          <Flame className="w-6 h-6 text-red-500" />
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Stage × Region Bottleneck Heatmap</h1>
-        </div>
-        <p className="text-sm text-slate-500 mt-0.5">
-          Identifies structural procedural delays, average days in stage, and SLA breach ratios across all regions.
-        </p>
+      <RoleHero
+        loading={loading}
+        context="Stage × region"
+        summary={summary}
+        health={healthSegments({ open: totals.pending, overdue: totals.late })}
+        actions={[{ label: 'See overdue files', icon: Flame, to: '/officer/applications?filter=overdue', primary: true }]}
+      />
+
+      {error && <ErrorBanner message={error} onRetry={load} />}
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <KpiCard title="Open applications" value={totals.pending} subtitle="Across every stage and region" icon={Layers} loading={loading} />
+        <KpiCard title="Late" value={totals.late} subtitle="Past their stage deadline" icon={AlertTriangle} variant="danger" loading={loading} />
+        <KpiCard title="Busy cells" value={totals.cells} subtitle="Stage and region pairs with open files" icon={Grid3x3} variant="brand" loading={loading} />
       </div>
 
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-700">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase">
-              <tr>
-                <th className="px-4 py-3">Region</th>
-                <th className="px-4 py-3">Stage</th>
-                <th className="px-4 py-3">Active Pending</th>
-                <th className="px-4 py-3">Avg Days in Stage</th>
-                <th className="px-4 py-3">Breaches</th>
-                <th className="px-4 py-3">Breach Intensity</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {bottlenecks.map((item, idx) => (
-                <tr key={idx} className="hover:bg-slate-50/80 transition">
-                  <td className="px-4 py-3.5 font-bold text-slate-900">{item.region}</td>
-                  <td className="px-4 py-3.5 font-medium">{item.stage_name}</td>
-                  <td className="px-4 py-3.5 font-semibold">{item.pending_count}</td>
-                  <td className="px-4 py-3.5">{item.avg_days_in_stage} days</td>
-                  <td className="px-4 py-3.5 font-bold text-red-600">{item.breach_count}</td>
-                  <td className="px-4 py-3.5">
-                    <span className={`inline-flex px-2.5 py-1 rounded-full font-bold text-[11px] ${getHeatmapColor(item.breach_rate_pct)}`}>
-                      {item.breach_rate_pct}% breach rate
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {!loading && hotSpots.length > 0 && (
+        <Panel title="Hot spots" subtitle="Where the most applications are late. Click one to open its list." icon={Trophy}>
+          <ol className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {hotSpots.map((h, i) => (
+              <li key={`${h.stage_code}-${h.region}`}>
+                <button
+                  onClick={() => openList({ stage: h.stage_code, region: h.region })}
+                  className="group w-full text-left rounded-2xl border border-red-200 bg-gradient-to-br from-red-50 to-white p-4 hover:shadow-md hover:-translate-y-0.5 transition"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="w-7 h-7 rounded-full bg-red-600 text-white text-xs font-extrabold flex items-center justify-center" aria-label={`Rank ${i + 1}`}>{i + 1}</span>
+                    <span className="text-[11px] font-bold text-red-800 bg-red-100 px-2 py-0.5 rounded-full">{h.breach_rate_pct}% late</span>
+                  </div>
+                  <p className="mt-3 text-sm font-bold text-slate-900">{h.stage_name}</p>
+                  <p className="text-xs text-slate-500">{h.region} region · {h.pending_count} open · {h.avg_days_in_stage} days on average</p>
+                  <p className="mt-2 text-xs font-semibold text-red-800 inline-flex items-center gap-1 group-hover:gap-2 transition-all">
+                    {h.breach_count} late <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />
+                  </p>
+                </button>
+              </li>
+            ))}
+          </ol>
+        </Panel>
+      )}
+
+      <Panel
+        title="Bottleneck heatmap"
+        subtitle="Open applications and how many are late, by stage and region. Click a cell to open its list."
+        icon={Grid3x3}
+        actions={<HeatmapLegend />}
+      >
+        {loading ? (
+          <div className="skeleton h-64 w-full" />
+        ) : rows.length === 0 ? (
+          <EmptyState title="No bottleneck data yet" text="The heatmap appears once there are open applications." />
+        ) : (
+          <BottleneckHeatmap rows={rows} onCellClick={openList} />
+        )}
+      </Panel>
     </div>
   );
 }

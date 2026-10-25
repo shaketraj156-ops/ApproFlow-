@@ -4,13 +4,8 @@ from app.core.config import settings
 
 Base = declarative_base()
 
-db_url = settings.DATABASE_URL
-if db_url.startswith("postgresql://"):
-    # SQLAlchemy 2.0 with psycopg
-    pass
-
 engine = create_engine(
-    db_url,
+    settings.DATABASE_URL,
     echo=False,
     pool_pre_ping=True
 )
@@ -21,5 +16,9 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
+    except Exception:
+        # Anything raised while handling the request must not leave a half-done transaction behind.
+        db.rollback()
+        raise
     finally:
         db.close()

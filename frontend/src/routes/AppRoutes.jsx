@@ -1,71 +1,78 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import React, { lazy } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { AppShell } from '../components/layout/AppShell';
 import { AuthGuard } from './AuthGuard';
-import { useAuth } from '../context/AuthContext';
-import { getRoleLandingRoute } from './roleLanding';
 
-// Pages
 import { Login } from '../pages/auth/Login';
-import { OfficerDashboard } from '../pages/officer/Dashboard';
-import { ApplicationDetail } from '../pages/officer/ApplicationDetail';
-import { Alerts } from '../pages/officer/Alerts';
-import { Evc } from '../pages/officer/Evc';
-import { Undertakings } from '../pages/officer/Undertakings';
-import { Documents } from '../pages/officer/Documents';
-import { Bottlenecks } from '../pages/bottlenecks/Bottlenecks';
-import { RegionalDashboard } from '../pages/region/Dashboard';
-import { NationalDashboard } from '../pages/national/Dashboard';
-import { InstitutionDashboard } from '../pages/institution/Dashboard';
-import { WorkflowAdmin } from '../pages/admin/WorkflowAdmin';
-import { AuditLog } from '../pages/audit/AuditLog';
+import { Home } from '../pages/home/Home';
 import { Forbidden, NotFound } from '../pages/errors/Forbidden';
 
-function RootRedirect() {
-  const { user } = useAuth();
-  if (!user) return <Navigate to="/login" replace />;
-  const landing = getRoleLandingRoute(user.role, user.officer_level);
-  return <Navigate to={landing} replace />;
-}
+// Pages are code-split; the shell wraps them in <Suspense>.
+const page = (loader, name) => lazy(() => loader().then((m) => ({ default: m[name] })));
+
+const OfficerDashboard = page(() => import('../pages/officer/Dashboard'), 'OfficerDashboard');
+const ApplicationDetail = page(() => import('../pages/officer/ApplicationDetail'), 'ApplicationDetail');
+const Alerts = page(() => import('../pages/officer/Alerts'), 'Alerts');
+const Evc = page(() => import('../pages/officer/Evc'), 'Evc');
+const Undertakings = page(() => import('../pages/officer/Undertakings'), 'Undertakings');
+const Documents = page(() => import('../pages/officer/Documents'), 'Documents');
+const Bottlenecks = page(() => import('../pages/bottlenecks/Bottlenecks'), 'Bottlenecks');
+const RegionalDashboard = page(() => import('../pages/region/Dashboard'), 'RegionalDashboard');
+const NationalDashboard = page(() => import('../pages/national/Dashboard'), 'NationalDashboard');
+const InstitutionDashboard = page(() => import('../pages/institution/Dashboard'), 'InstitutionDashboard');
+const WorkflowAdmin = page(() => import('../pages/admin/WorkflowAdmin'), 'WorkflowAdmin');
+const AuditLog = page(() => import('../pages/audit/AuditLog'), 'AuditLog');
+
+// system_admin always passes AuthGuard, so it is not repeated in these lists.
+const OFFICER = ['aicte_officer'];
+const OFFICER_OR_AUDITOR = ['aicte_officer', 'auditor'];
+const INSTITUTION = ['institution_admin', 'institution_staff'];
+const ADMIN_ONLY = ['system_admin'];
 
 export function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Login />} />
-      <Route path="/" element={<RootRedirect />} />
+      <Route path="/" element={<Home />} />
 
-      {/* Authenticated Dashboard Shell */}
       <Route element={<AuthGuard />}>
         <Route element={<AppShell />}>
-          {/* Officer & Dedicated Operational Screens */}
-          <Route path="/officer/dashboard" element={<OfficerDashboard />} />
-          <Route path="/officer/applications" element={<OfficerDashboard />} />
-          <Route path="/officer/applications/:id" element={<ApplicationDetail />} />
-          <Route path="/officer/alerts" element={<Alerts />} />
-          <Route path="/officer/evc" element={<Evc />} />
-          <Route path="/officer/undertakings" element={<Undertakings />} />
-          <Route path="/officer/documents" element={<Documents />} />
-          
-          {/* Regional & National Views */}
-          <Route path="/region/dashboard" element={<RegionalDashboard />} />
-          <Route path="/national/dashboard" element={<NationalDashboard />} />
-          <Route path="/bottlenecks" element={<Bottlenecks />} />
+          {/* Officer operational screens */}
+          <Route element={<AuthGuard allowedRoles={OFFICER} />}>
+            <Route path="/officer/dashboard" element={<OfficerDashboard />} />
+            <Route path="/officer/alerts" element={<Alerts />} />
+            <Route path="/officer/evc" element={<Evc />} />
+            <Route path="/officer/undertakings" element={<Undertakings />} />
+            <Route path="/officer/documents" element={<Documents />} />
+            <Route path="/region/dashboard" element={<RegionalDashboard />} />
+            <Route path="/national/dashboard" element={<NationalDashboard />} />
+          </Route>
 
-          {/* Institution Portal */}
-          <Route path="/institution/dashboard" element={<InstitutionDashboard />} />
+          {/* Officers and auditors */}
+          <Route element={<AuthGuard allowedRoles={OFFICER_OR_AUDITOR} />}>
+            <Route path="/officer/applications" element={<OfficerDashboard />} />
+            <Route path="/officer/applications/:id" element={<ApplicationDetail />} />
+            <Route path="/bottlenecks" element={<Bottlenecks />} />
+            <Route path="/reports" element={<Bottlenecks />} />
+            <Route path="/audit" element={<AuditLog />} />
+          </Route>
 
-          {/* Admin & Audit */}
-          <Route path="/admin/workflow" element={<WorkflowAdmin />} />
-          <Route path="/admin/escalation" element={<WorkflowAdmin />} />
-          <Route path="/admin/alert-rules" element={<WorkflowAdmin />} />
-          <Route path="/admin/jobs" element={<WorkflowAdmin />} />
-          <Route path="/audit" element={<AuditLog />} />
-          <Route path="/reports" element={<Bottlenecks />} />
+          {/* Institution portal */}
+          <Route element={<AuthGuard allowedRoles={INSTITUTION} />}>
+            <Route path="/institution/dashboard" element={<InstitutionDashboard />} />
+          </Route>
+
+          {/* Admin */}
+          <Route element={<AuthGuard allowedRoles={ADMIN_ONLY} />}>
+            <Route path="/admin/workflow" element={<WorkflowAdmin />} />
+            <Route path="/admin/escalation" element={<WorkflowAdmin />} />
+            <Route path="/admin/alert-rules" element={<WorkflowAdmin />} />
+            <Route path="/admin/jobs" element={<WorkflowAdmin />} />
+          </Route>
         </Route>
       </Route>
 
-      {/* Error Routes */}
       <Route path="/403" element={<Forbidden />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
