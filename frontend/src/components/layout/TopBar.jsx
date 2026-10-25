@@ -16,12 +16,12 @@ const regionLabel = (region) => (region === 'ALL' ? 'All regions' : `${region.ch
 function Brand({ to }) {
   return (
     <Link to={to} className="flex items-center gap-2.5 shrink-0" aria-label="ApproFlow home">
-      <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white font-extrabold text-sm shadow-sm">
+      <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center text-white font-extrabold text-sm shadow-lg shadow-emerald-950/40 ring-1 ring-white/20">
         AF
       </span>
       <span className="hidden sm:block leading-tight">
-        <span className="block text-base font-bold text-slate-900">ApproFlow</span>
-        <span className="block text-[10px] font-medium text-slate-500">AICTE Approval Engine</span>
+        <span className="block text-base font-bold text-white">ApproFlow</span>
+        <span className="block text-[10px] font-medium text-slate-400">AICTE Approval Engine</span>
       </span>
     </Link>
   );
@@ -87,16 +87,16 @@ function UserMenu({ user, theme, onLogout }) {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="Account menu"
-        className="flex items-center gap-2.5 pl-1 pr-2 py-1 rounded-full hover:bg-slate-100 transition"
+        className="flex items-center gap-2.5 pl-1 pr-2 py-1 rounded-full hover:bg-white/10 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
       >
-        <span className={`w-9 h-9 rounded-full bg-gradient-to-br ${theme.avatar} text-white flex items-center justify-center font-bold text-xs shadow-sm`}>
+        <span className={`w-9 h-9 rounded-full bg-gradient-to-br ${theme.avatar} text-white flex items-center justify-center font-bold text-xs ring-2 ring-white/25`}>
           {initials(user)}
         </span>
         <span className="hidden md:block text-left leading-tight">
-          <span className="block text-xs font-semibold text-slate-900">{displayName(user)}</span>
-          <span className="block text-[11px] text-slate-500">{theme.title}</span>
+          <span className="block text-xs font-semibold text-white">{displayName(user)}</span>
+          <span className="block text-[11px] text-slate-300">{theme.title}</span>
         </span>
-        <ChevronDown className={`hidden md:block w-4 h-4 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+        <ChevronDown className={`hidden md:block w-4 h-4 text-slate-300 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
 
       {open && (
@@ -248,11 +248,17 @@ export function TopBar() {
   }, [location.pathname]);
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
-      <div className="h-16 px-4 sm:px-6 flex items-center gap-3 sm:gap-5 max-w-[1500px] mx-auto">
+    <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md text-white shadow-lg shadow-slate-900/10">
+      {/* A soft glow in the colour of the signed-in role. It sits in its own clipped layer so the account menu can still overflow the header. */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div className={`absolute -top-24 right-[10%] w-96 h-48 rounded-full blur-3xl ${theme.glow}`} />
+        <div className="absolute -top-24 left-[20%] w-72 h-40 rounded-full bg-white/[0.03] blur-3xl" />
+      </div>
+
+      <div className="relative h-16 px-4 sm:px-6 flex items-center gap-3 sm:gap-5 max-w-[1500px] mx-auto">
         <button
           onClick={() => setMenuOpen(true)}
-          className="lg:hidden p-2 -ml-2 rounded-lg text-slate-600 hover:bg-slate-100"
+          className="lg:hidden p-2 -ml-2 rounded-lg text-slate-200 hover:bg-white/10"
           aria-label="Open menu"
         >
           <Menu className="w-5 h-5" />
@@ -262,17 +268,17 @@ export function TopBar() {
 
         <button
           onClick={() => setSearchOpen(true)}
-          className="flex-1 max-w-md inline-flex items-center gap-2 pl-3 pr-2 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-slate-300 text-slate-500 text-sm transition"
+          className="flex-1 max-w-md inline-flex items-center gap-2.5 pl-3.5 pr-2.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.06] hover:bg-white/10 hover:border-white/20 text-slate-300 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
           aria-label="Quick search (Ctrl+K)"
         >
-          <Search className="w-4 h-4 shrink-0" aria-hidden="true" />
+          <Search className="w-4 h-4 shrink-0 text-slate-400" aria-hidden="true" />
           <span className="hidden sm:inline truncate">Search applications, pages…</span>
-          <kbd className="hidden md:inline ml-auto text-[10px] font-semibold text-slate-400 border border-slate-200 bg-white rounded px-1.5 py-0.5">Ctrl K</kbd>
+          <kbd className="hidden md:inline ml-auto text-[10px] font-semibold text-slate-300 border border-white/15 bg-white/10 rounded px-1.5 py-0.5">Ctrl K</kbd>
         </button>
 
-        <div className="ml-auto flex items-center gap-2 sm:gap-4">
+        <div className="ml-auto flex items-center gap-2 sm:gap-3">
           <span
-            className="hidden xl:inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200"
+            className="hidden xl:inline-flex items-center gap-1.5 text-xs font-semibold text-slate-200 px-3 py-1.5 rounded-full bg-white/[0.06] border border-white/10"
             title="Current time in India (IST)"
           >
             <Clock className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
@@ -283,28 +289,28 @@ export function TopBar() {
         </div>
       </div>
 
-      <nav aria-label="Main" className="hidden lg:block border-t border-slate-100 bg-gradient-to-b from-white to-slate-50/60">
+      <nav aria-label="Main" className="relative hidden lg:block border-t border-white/10">
         <div className="overflow-x-auto no-scrollbar">
           <div className="max-w-[1500px] mx-auto">
-            <div ref={tabsRef} className="relative flex items-stretch gap-1 w-max min-w-full px-4 sm:px-6 py-1.5">
+            <div ref={tabsRef} className="relative flex items-stretch gap-1 w-max min-w-full px-4 sm:px-6 pt-2">
               {indicator.visible && (
                 <>
-                  {/* the soft highlight and the bar under it both glide to the tab you open */}
+                  {/* the soft pill behind the current tab and the coloured line under it both glide to the tab you open */}
                   <span
                     aria-hidden="true"
-                    className="absolute top-1.5 bottom-1.5 rounded-xl bg-emerald-50 ring-1 ring-emerald-100 shadow-xs transition-[left,width] duration-300 ease-out"
+                    className="absolute top-2 bottom-1.5 rounded-xl bg-white/10 ring-1 ring-white/10 transition-[left,width] duration-300 ease-out"
                     style={{ left: indicator.left, width: indicator.width }}
                   />
                   <span
                     aria-hidden="true"
-                    className="absolute -bottom-1.5 h-[3px] rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-[left,width] duration-300 ease-out"
-                    style={{ left: indicator.left + 14, width: Math.max(indicator.width - 28, 8) }}
+                    className={`absolute bottom-0 h-[3px] rounded-t-full bg-gradient-to-r ${theme.avatar} transition-[left,width] duration-300 ease-out`}
+                    style={{ left: indicator.left + 12, width: Math.max(indicator.width - 24, 8) }}
                   />
                 </>
               )}
               {sections.map((section, i) => (
                 <React.Fragment key={section.title}>
-                  {i > 0 && <span className="self-center w-px h-5 bg-slate-200 mx-2 shrink-0" aria-hidden="true" />}
+                  {i > 0 && <span className="self-center w-px h-5 bg-white/15 mx-2 shrink-0" aria-hidden="true" />}
                   <ul aria-label={section.title} className="flex items-stretch gap-0.5">
                     {section.links.map((item) => {
                       const Icon = item.icon;
@@ -313,17 +319,17 @@ export function TopBar() {
                           <NavLink
                             to={item.to}
                             className={({ isActive }) =>
-                              `group relative z-10 inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-[13px] whitespace-nowrap transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                              `group relative z-10 inline-flex items-center gap-2 px-3.5 py-2.5 mb-1.5 rounded-xl text-[13px] whitespace-nowrap transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 ${
                                 isActive
-                                  ? 'text-emerald-800 font-semibold'
-                                  : 'text-slate-600 font-medium hover:text-slate-900 hover:bg-white hover:shadow-xs'
+                                  ? 'text-white font-semibold'
+                                  : 'text-slate-300 font-medium hover:text-white hover:bg-white/5'
                               }`
                             }
                           >
                             {({ isActive }) => (
                               <>
                                 <Icon
-                                  className={`w-4 h-4 shrink-0 transition duration-200 group-hover:-translate-y-0.5 group-hover:scale-110 ${isActive ? 'text-emerald-600' : 'text-slate-400 group-hover:text-emerald-600'}`}
+                                  className={`w-4 h-4 shrink-0 transition duration-200 group-hover:-translate-y-0.5 group-hover:scale-110 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'}`}
                                   aria-hidden="true"
                                 />
                                 {item.label}

@@ -6,9 +6,12 @@ import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
  * A column with a `sortValue(row)` function can be sorted: click its header to sort ascending,
  * again for descending, a third time to go back to the original order.
  * `defaultSort` is `{ index, dir }` and starts the table sorted by that column.
+ * `pageSize` shows only that many rows at first, with a "Show more" button for the rest.
+ * A column with `hideOnMobile: true` is hidden below the md breakpoint.
  */
-export function DataTable({ columns, data, onRowClick, loading = false, emptyMessage = "No records found", defaultSort = null }) {
+export function DataTable({ columns, data, onRowClick, loading = false, emptyMessage = "No records found", defaultSort = null, pageSize = null }) {
   const [sort, setSort] = useState(defaultSort);
+  const [shownCount, setShownCount] = useState(pageSize);
 
   const rows = useMemo(() => {
     if (!data) return data;
@@ -52,6 +55,11 @@ export function DataTable({ columns, data, onRowClick, loading = false, emptyMes
     );
   }
 
+  const visibleRows = shownCount ? rows.slice(0, shownCount) : rows;
+  const remaining = rows.length - visibleRows.length;
+  const mobileClass = (col) =>
+    `${col.hideOnMobile ? 'hidden md:table-cell' : ''} ${col.wrapOnMobile ? 'whitespace-normal md:whitespace-nowrap' : ''}`;
+
   return (
     <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-card">
       <table className="w-full text-left text-sm text-slate-700">
@@ -63,7 +71,7 @@ export function DataTable({ columns, data, onRowClick, loading = false, emptyMes
               const ariaSort = active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : sortable ? 'none' : undefined;
               const Icon = active ? (sort.dir === 'asc' ? ChevronUp : ChevronDown) : ChevronsUpDown;
               return (
-                <th key={idx} scope="col" aria-sort={ariaSort} className={`px-4 py-3 ${col.className || ''}`}>
+                <th key={idx} scope="col" aria-sort={ariaSort} className={`px-3 sm:px-4 py-3 ${mobileClass(col)} ${col.className || ''}`}>
                   {sortable ? (
                     <button
                       type="button"
@@ -82,7 +90,7 @@ export function DataTable({ columns, data, onRowClick, loading = false, emptyMes
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
-          {rows.map((row, rowIdx) => (
+          {visibleRows.map((row, rowIdx) => (
             <tr
               key={row.id || rowIdx}
               onClick={() => onRowClick && onRowClick(row)}
@@ -97,7 +105,7 @@ export function DataTable({ columns, data, onRowClick, loading = false, emptyMes
               className={`transition hover:bg-emerald-50/40 ${onRowClick ? 'cursor-pointer focus:outline-none focus-visible:bg-emerald-50/60' : ''}`}
             >
               {columns.map((col, colIdx) => (
-                <td key={colIdx} className={`px-4 py-3.5 whitespace-nowrap ${col.className || ''}`}>
+                <td key={colIdx} className={`px-3 sm:px-4 py-3.5 ${col.wrapOnMobile ? '' : 'whitespace-nowrap'} ${mobileClass(col)} ${col.className || ''}`}>
                   {col.render ? col.render(row) : row[col.accessor]}
                 </td>
               ))}
@@ -105,6 +113,18 @@ export function DataTable({ columns, data, onRowClick, loading = false, emptyMes
           ))}
         </tbody>
       </table>
+      {remaining > 0 && (
+        <div className="border-t border-slate-100 bg-slate-50/60 px-4 py-3 flex items-center justify-center gap-4">
+          <button
+            type="button"
+            onClick={() => setShownCount((c) => c + pageSize)}
+            className="text-sm font-semibold text-emerald-700 hover:text-emerald-900"
+          >
+            Show {Math.min(pageSize, remaining)} more
+          </button>
+          <span className="text-xs text-slate-400">{remaining} hidden</span>
+        </div>
+      )}
     </div>
   );
 }

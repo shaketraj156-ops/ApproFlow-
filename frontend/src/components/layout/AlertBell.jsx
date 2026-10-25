@@ -23,7 +23,7 @@ export function AlertBell() {
   return (
     <Link
       to="/officer/alerts"
-      className="relative p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition"
+      className="relative p-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
       title="Alerts Center"
       aria-label={`Alerts Center, ${summary.open_count} open${critical ? `, ${summary.critical_count} critical` : ''}`}
     >

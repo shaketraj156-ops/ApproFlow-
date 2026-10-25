@@ -312,7 +312,7 @@ function ProductPreview() {
         </div>
       </div>
 
-      <div className="hidden sm:flex absolute -bottom-6 -left-4 lg:-left-8 animate-floatSlow items-center gap-3 rounded-2xl bg-white shadow-xl border border-slate-100 px-4 py-3">
+      <div className="hidden sm:flex absolute -bottom-12 -left-4 lg:-left-8 animate-floatSlow items-center gap-3 rounded-2xl bg-white shadow-xl border border-slate-100 px-4 py-3">
         <span className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
           <CalendarCheck className="w-4 h-4" />
         </span>
@@ -351,14 +351,14 @@ function Hero() {
           <div className="mt-9 flex flex-wrap gap-3">
             <Link
               to={portal.to}
-              className="group inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold shadow-lg shadow-emerald-900/30 transition"
+              className="group w-full sm:w-auto justify-center inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold shadow-lg shadow-emerald-900/30 transition"
             >
               {portal.signedIn ? 'Go to your dashboard' : 'Open the portal'}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition" aria-hidden="true" />
             </Link>
             <a
               href="#how-it-works"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 text-white font-semibold transition"
+              className="w-full sm:w-auto justify-center inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 text-white font-semibold transition"
             >
               See how it works
             </a>

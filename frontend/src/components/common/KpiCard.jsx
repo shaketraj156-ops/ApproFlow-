@@ -18,19 +18,19 @@ function Body({ title, value, subtitle, icon: Icon, trend, loading, v }) {
       <span className={`absolute left-0 top-0 h-full w-1 ${v.accent}`} aria-hidden="true" />
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</p>
+          <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</p>
           {loading ? (
             <div className="skeleton h-9 w-20 mt-2" aria-hidden="true" />
           ) : (
             <div className="mt-1.5 flex items-baseline gap-2">
-              <span className="text-3xl font-bold tracking-tight text-slate-900 tabular-nums">{shown ?? '—'}</span>
+              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 tabular-nums">{shown ?? '—'}</span>
               {trend && <span className="text-xs font-semibold text-emerald-600">{trend}</span>}
             </div>
           )}
         </div>
         {Icon && (
-          <div className={`shrink-0 p-2.5 rounded-xl ${v.chip}`}>
-            <Icon className="w-5 h-5" aria-hidden="true" />
+          <div className={`shrink-0 p-2 sm:p-2.5 rounded-xl ${v.chip}`}>
+            <Icon className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
           </div>
         )}
       </div>
@@ -44,7 +44,7 @@ function Body({ title, value, subtitle, icon: Icon, trend, loading, v }) {
  */
 export function KpiCard({ title, value, subtitle, icon, trend, variant = 'default', loading = false, to }) {
   const v = VARIANTS[variant] || VARIANTS.default;
-  const classes = `relative block overflow-hidden p-5 rounded-2xl border shadow-card transition hover:shadow-md hover:-translate-y-0.5 ${v.card}`;
+  const classes = `relative block overflow-hidden p-4 sm:p-5 rounded-2xl border shadow-card transition hover:shadow-md hover:-translate-y-0.5 ${v.card}`;
   const body = <Body title={title} value={value} subtitle={subtitle} icon={icon} trend={trend} loading={loading} v={v} />;
 
   return to ? (

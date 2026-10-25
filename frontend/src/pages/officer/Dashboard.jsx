@@ -137,22 +137,29 @@ export function OfficerDashboard() {
   const columns = [
     {
       header: 'Application',
+      wrapOnMobile: true,
       sortValue: (row) => row.application_number,
       render: (row) => (
         <div>
-          <div className="font-semibold text-slate-900 flex items-center gap-2">
-            {row.application_number}
+          <div className="font-semibold text-slate-900 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="whitespace-nowrap">{row.application_number}</span>
             <DelayRiskTag score={row.delay_risk_score} />
           </div>
           <div className="text-xs text-slate-500">{row.institution_name || 'Technical Institute'} · {row.region}</div>
+          {/* Stage and Priority columns are hidden on phones, so they are shown here instead. */}
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 md:hidden">
+            <StatusBadge status={row.current_stage_code} />
+            <PriorityPill score={row.priority_score} />
+          </div>
         </div>
       ),
     },
-    { header: 'Stage', sortValue: (row) => stages.findIndex((s) => s.code === row.current_stage_code), render: (row) => <StatusBadge status={row.current_stage_code} /> },
+    { header: 'Stage', hideOnMobile: true, sortValue: (row) => stages.findIndex((s) => s.code === row.current_stage_code), render: (row) => <StatusBadge status={row.current_stage_code} /> },
     { header: 'SLA (IST)', sortValue: (row) => (row.is_on_hold ? null : row.days_left), render: (row) => <SlaChip daysLeft={row.days_left} onHold={row.is_on_hold} /> },
-    { header: 'Priority', sortValue: (row) => Number(row.priority_score), render: (row) => <PriorityPill score={row.priority_score} /> },
+    { header: 'Priority', hideOnMobile: true, sortValue: (row) => Number(row.priority_score), render: (row) => <PriorityPill score={row.priority_score} /> },
     {
       header: '',
+      hideOnMobile: true,
       className: 'text-right',
       render: (row) => (
         <button
@@ -182,7 +189,7 @@ export function OfficerDashboard() {
 
       {error && <ErrorBanner message={error} onRetry={load} />}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <KpiCard
           title="My open" value={kpis?.pending_actions} icon={FileText} loading={loading && !kpis}
           subtitle="Applications in progress" to="/officer/applications"
@@ -201,8 +208,8 @@ export function OfficerDashboard() {
         />
       </div>
 
-      <div className="grid grid-cols-1 2xl:grid-cols-3 gap-6">
-        <div className="2xl:col-span-2 space-y-4 min-w-0">
+      <div className="grid grid-cols-1 min-[1400px]:grid-cols-3 gap-6 items-start">
+        <div className="min-[1400px]:col-span-2 space-y-4 min-w-0">
           <h2 className="flex items-center gap-2 text-base font-bold text-slate-900">
             <Flame className="w-5 h-5 text-red-600" aria-hidden="true" /> Needs action first
           </h2>
@@ -287,6 +294,7 @@ export function OfficerDashboard() {
                 data={visible}
                 loading={loading && applications.length === 0}
                 defaultSort={{ index: 3, dir: 'desc' }}
+                pageSize={10}
                 onRowClick={(row) => navigate(`/officer/applications/${row.id}`)}
                 emptyMessage="No applications in your queue"
               />
