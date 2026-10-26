@@ -54,7 +54,7 @@ export const documentsService = {
         valid_until: `${payload.valid_until}T00:00:00Z`,
         days_remaining: daysLeft,
         status,
-        storage_path: payload.storage_path || 'https://storage.supabase.co/aicte/docs/uploaded_document.pdf'
+        storage_path: payload.storage_path || '/sample-document.pdf'
       };
       docsStore = [doc, ...docsStore];
       return doc;

@@ -25,7 +25,7 @@
     "due_date": "2026-10-28T18:30:00Z",
     "status": "SUBMITTED",
     "days_remaining": 3,
-    "document_path": "https://storage.supabase.co/aicte/fire_noc_block_c_delhi.pdf",
+    "document_path": "/sample-document.pdf",
     "remarks": "NOC received from DFS with inspection certificate dated 22 Oct 2026.",
     "created_at": "2026-08-15T10:00:00Z"
   },
@@ -55,7 +55,7 @@
     "due_date": "2026-10-15T18:30:00Z",
     "status": "VERIFIED",
     "days_remaining": -10,
-    "document_path": "https://storage.supabase.co/aicte/isp_bandwidth_cert_blr.pdf",
+    "document_path": "/sample-document.pdf",
     "remarks": "Verified by Scrutiny Officer on 16 Oct 2026. Meets AICTE norms.",
     "created_at": "2026-08-01T10:00:00Z"
   },

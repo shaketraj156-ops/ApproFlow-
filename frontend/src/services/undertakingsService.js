@@ -69,7 +69,7 @@ export const undertakingsService = {
         u.id === id ? { 
           ...u, 
           status: 'SUBMITTED', 
-          document_path: payload.document_path || 'https://storage.supabase.co/aicte/evidence_submitted.pdf',
+          document_path: payload.document_path || '/sample-document.pdf',
           remarks: payload.remarks || 'Evidence submitted by Institution'
         } : u
       );

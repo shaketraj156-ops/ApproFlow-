@@ -10,7 +10,7 @@
     "valid_until": "2026-10-25T00:00:00Z",
     "days_remaining": 0,
     "status": "EXPIRED",
-    "storage_path": "https://storage.supabase.co/aicte/docs/fire_noc_2025.pdf"
+    "storage_path": "/sample-document.pdf"
   },
   {
     "id": "doc-2",
@@ -23,7 +23,7 @@
     "valid_until": "2026-11-15T00:00:00Z",
     "days_remaining": 21,
     "status": "EXPIRING_SOON",
-    "storage_path": "https://storage.supabase.co/aicte/docs/mpcb_clearance_pune.pdf"
+    "storage_path": "/sample-document.pdf"
   },
   {
     "id": "doc-3",
@@ -36,7 +36,7 @@
     "valid_until": "2027-05-31T00:00:00Z",
     "days_remaining": 218,
     "status": "VALID",
-    "storage_path": "https://storage.supabase.co/aicte/docs/vtu_affiliation_2026.pdf"
+    "storage_path": "/sample-document.pdf"
   },
   {
     "id": "doc-4",
@@ -49,7 +49,7 @@
     "valid_until": "2032-01-01T00:00:00Z",
     "days_remaining": 1894,
     "status": "VALID",
-    "storage_path": "https://storage.supabase.co/aicte/docs/kmc_sanctioned_plan.pdf"
+    "storage_path": "/sample-document.pdf"
   },
   {
     "id": "doc-5",
@@ -62,7 +62,7 @@
     "valid_until": "2026-11-20T00:00:00Z",
     "days_remaining": 26,
     "status": "EXPIRING_SOON",
-    "storage_path": "https://storage.supabase.co/aicte/docs/stability_cert_bhopal.pdf"
+    "storage_path": "/sample-document.pdf"
   },
   {
     "id": "doc-6",
@@ -75,6 +75,6 @@
     "valid_until": "2035-05-10T00:00:00Z",
     "days_remaining": 3118,
     "status": "VALID",
-    "storage_path": "https://storage.supabase.co/aicte/docs/trust_deed_diat.pdf"
+    "storage_path": "/sample-document.pdf"
   }
 ]

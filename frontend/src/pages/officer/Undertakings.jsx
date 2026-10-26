@@ -254,7 +254,7 @@ export function Undertakings() {
                           onClick={() => {
                             // Quick simulate institution submission
                             undertakingsService.submitEvidence(u.id, {
-                              document_path: 'https://storage.supabase.co/aicte/compliance_affidavit.pdf',
+                              document_path: '/sample-document.pdf',
                               remarks: 'Official affidavit submitted with statutory attachments'
                             }).then(() => loadData());
                           }}
