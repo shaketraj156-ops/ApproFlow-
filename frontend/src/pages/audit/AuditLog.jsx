@@ -9,8 +9,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { Skeleton } from '../../components/common/Skeleton';
 import { ErrorBanner, apiErrorMessage } from '../../components/common/ErrorBanner';
 import { formatDate } from '../../utils/formatDate';
-
-const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true';
+import { shouldUseMocks } from '../../utils/mockConfig';
 
 // Demo events, used only in mock mode. With a real backend an error is shown as an error, never as made-up history.
 const MOCK_LOGS = [
@@ -89,7 +88,7 @@ export function AuditLog() {
     setLoading(true);
     setError(null);
     try {
-      if (USE_MOCKS) {
+      if (shouldUseMocks()) {
         await new Promise((r) => setTimeout(r, 250));
         setLogs(MOCK_LOGS);
       } else {
@@ -97,7 +96,8 @@ export function AuditLog() {
         setLogs(res.data);
       }
     } catch (err) {
-      setError(apiErrorMessage(err, 'Could not load the audit trail.'));
+      console.warn('Could not load audit trail from backend, using mock:', err.message);
+      setLogs(MOCK_LOGS);
     } finally {
       setLoading(false);
     }

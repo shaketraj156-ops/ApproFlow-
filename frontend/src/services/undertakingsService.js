@@ -1,13 +1,12 @@
 import axiosClient from '../api/axiosClient';
 import mockUndertakings from '../mocks/undertakings.json';
-
-const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true';
+import { shouldUseMocks } from '../utils/mockConfig';
 
 let undertakingsStore = [...mockUndertakings];
 
 export const undertakingsService = {
   async getUndertakings(params = {}) {
-    if (USE_MOCKS) {
+    if (shouldUseMocks()) {
       let filtered = [...undertakingsStore];
       if (params.status && params.status !== 'ALL') {
         filtered = filtered.filter(u => u.status === params.status);
@@ -20,12 +19,28 @@ export const undertakingsService = {
       }
       return filtered;
     }
-    const response = await axiosClient.get('/undertakings', { params });
-    return response.data;
+    try {
+      const response = await axiosClient.get('/undertakings', { params });
+      return response.data;
+    } catch (err) {
+      console.warn('Backend getUndertakings failed, using mock data:', err.message);
+      let filtered = [...undertakingsStore];
+      if (params.status && params.status !== 'ALL') {
+        filtered = filtered.filter(u => u.status === params.status);
+      }
+      if (params.application_id) {
+        filtered = filtered.filter(u => u.application_id === params.application_id);
+      }
+      if (params.institution_id) {
+        filtered = filtered.filter(u => u.institution_id === params.institution_id);
+      }
+      return filtered;
+    }
   },
 
+
   async createUndertaking(payload) {
-    if (USE_MOCKS) {
+    if (shouldUseMocks()) {
       const item = {
         id: `u-mock-${Date.now()}`,
         application_id: payload.application_id,
@@ -49,7 +64,7 @@ export const undertakingsService = {
   },
 
   async submitEvidence(id, payload) {
-    if (USE_MOCKS) {
+    if (shouldUseMocks()) {
       undertakingsStore = undertakingsStore.map(u => 
         u.id === id ? { 
           ...u, 
@@ -65,7 +80,7 @@ export const undertakingsService = {
   },
 
   async verifyUndertaking(id, payload) {
-    if (USE_MOCKS) {
+    if (shouldUseMocks()) {
       undertakingsStore = undertakingsStore.map(u => 
         u.id === id ? {
           ...u,

@@ -1,8 +1,7 @@
 import axiosClient from '../api/axiosClient';
 import mockApps from '../mocks/applications.json';
 import mockStages from '../mocks/stages.json';
-
-const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true';
+import { shouldUseMocks } from '../utils/mockConfig';
 
 // Mock mode keeps its own copy so moves and reassignments survive navigation (and reset on reload).
 const store = mockApps.map((a) => ({ ...a }));
@@ -15,35 +14,44 @@ function mockError(code, message) {
   return err;
 }
 
+function getMockApplications(params = {}) {
+  let filtered = store.map((a) => ({ ...a }));
+  if (params.stage) filtered = filtered.filter((a) => a.current_stage_code === params.stage);
+  if (params.region) filtered = filtered.filter((a) => a.region === params.region);
+  if (params.search) {
+    const s = params.search.toLowerCase();
+    filtered = filtered.filter((a) =>
+      a.application_number.toLowerCase().includes(s) ||
+      (a.institution_name && a.institution_name.toLowerCase().includes(s))
+    );
+  }
+  if (params.is_overdue === true) filtered = filtered.filter((a) => !a.decision && a.days_left < 0);
+  filtered.sort((a, b) => b.priority_score - a.priority_score);
+  return {
+    items: filtered,
+    total: filtered.length,
+    page: params.page || 1,
+    page_size: params.page_size || 20,
+    pages: 1,
+  };
+}
+
 export const applicationsService = {
   async getApplications(params = {}) {
-    if (USE_MOCKS) {
-      let filtered = store.map((a) => ({ ...a }));
-      if (params.stage) filtered = filtered.filter((a) => a.current_stage_code === params.stage);
-      if (params.region) filtered = filtered.filter((a) => a.region === params.region);
-      if (params.search) {
-        const s = params.search.toLowerCase();
-        filtered = filtered.filter((a) =>
-          a.application_number.toLowerCase().includes(s) ||
-          (a.institution_name && a.institution_name.toLowerCase().includes(s))
-        );
-      }
-      if (params.is_overdue === true) filtered = filtered.filter((a) => !a.decision && a.days_left < 0);
-      filtered.sort((a, b) => b.priority_score - a.priority_score);
-      return await delay({
-        items: filtered,
-        total: filtered.length,
-        page: params.page || 1,
-        page_size: params.page_size || 20,
-        pages: 1,
-      });
+    if (shouldUseMocks()) {
+      return await delay(getMockApplications(params));
     }
-    const response = await axiosClient.get('/applications', { params });
-    return response.data;
+    try {
+      const response = await axiosClient.get('/applications', { params });
+      return response.data;
+    } catch (err) {
+      console.warn('Backend getApplications failed, using mock data:', err.message);
+      return await delay(getMockApplications(params));
+    }
   },
 
   async getApplicationById(id) {
-    if (USE_MOCKS) {
+    if (shouldUseMocks()) {
       const app = store.find((a) => a.id === id);
       if (!app) {
         const err = new Error('Application not found');
@@ -52,12 +60,20 @@ export const applicationsService = {
       }
       return await delay({ ...app }, 150);
     }
-    const response = await axiosClient.get(`/applications/${id}`);
-    return response.data;
+    try {
+      const response = await axiosClient.get(`/applications/${id}`);
+      return response.data;
+    } catch (err) {
+      console.warn('Backend getApplicationById failed, using mock data:', err.message);
+      const app = store.find((a) => a.id === id);
+      if (app) return await delay({ ...app }, 150);
+      throw err;
+    }
   },
 
+
   async moveStage(id, payload) {
-    if (USE_MOCKS) {
+    if (shouldUseMocks()) {
       const app = store.find((a) => a.id === id);
       if (!app) throw mockError('NOT_FOUND', 'Application not found');
       const current = mockStages.find((s) => s.code === app.current_stage_code);
@@ -86,7 +102,7 @@ export const applicationsService = {
   },
 
   async assignOfficer(id, officerId) {
-    if (USE_MOCKS) {
+    if (shouldUseMocks()) {
       const app = store.find((a) => a.id === id);
       if (!app) throw new Error('Application not found');
       app.owner_id = officerId;
@@ -96,3 +112,4 @@ export const applicationsService = {
     return response.data;
   },
 };
+

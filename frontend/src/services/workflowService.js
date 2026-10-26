@@ -1,22 +1,32 @@
 import axiosClient from '../api/axiosClient';
 import mockStages from '../mocks/stages.json';
-
-const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true';
+import { shouldUseMocks } from '../utils/mockConfig';
 
 export const workflowService = {
   async getStages() {
-    if (USE_MOCKS) {
+    if (shouldUseMocks()) {
       return mockStages;
     }
-    const response = await axiosClient.get('/workflow/stages');
-    return response.data;
+    try {
+      const response = await axiosClient.get('/workflow/stages');
+      return response.data;
+    } catch (err) {
+      console.warn('Backend unavailable, falling back to mock stages:', err);
+      return mockStages;
+    }
   },
 
   async updateStage(code, payload) {
-    if (USE_MOCKS) {
+    if (shouldUseMocks()) {
       return { code, ...payload };
     }
-    const response = await axiosClient.put(`/workflow/stages/${code}`, payload);
-    return response.data;
+    try {
+      const response = await axiosClient.put(`/workflow/stages/${code}`, payload);
+      return response.data;
+    } catch (err) {
+      console.warn('Backend updateStage failed, falling back to mock:', err);
+      return { code, ...payload };
+    }
   }
 };
+

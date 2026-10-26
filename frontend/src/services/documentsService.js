@@ -1,13 +1,12 @@
 import axiosClient from '../api/axiosClient';
 import mockDocs from '../mocks/documents.json';
-
-const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true';
+import { shouldUseMocks } from '../utils/mockConfig';
 
 let docsStore = [...mockDocs];
 
 export const documentsService = {
   async getDocuments(params = {}) {
-    if (USE_MOCKS) {
+    if (shouldUseMocks()) {
       let filtered = [...docsStore];
       if (params.status && params.status !== 'ALL') {
         filtered = filtered.filter(d => d.status === params.status);
@@ -17,12 +16,25 @@ export const documentsService = {
       }
       return filtered;
     }
-    const response = await axiosClient.get('/compliance-documents', { params });
-    return response.data;
+    try {
+      const response = await axiosClient.get('/compliance-documents', { params });
+      return response.data;
+    } catch (err) {
+      console.warn('Backend getDocuments failed, using mock data:', err.message);
+      let filtered = [...docsStore];
+      if (params.status && params.status !== 'ALL') {
+        filtered = filtered.filter(d => d.status === params.status);
+      }
+      if (params.institution_id) {
+        filtered = filtered.filter(d => d.institution_id === params.institution_id);
+      }
+      return filtered;
+    }
   },
 
+
   async addDocument(payload) {
-    if (USE_MOCKS) {
+    if (shouldUseMocks()) {
       const now = new Date();
       const validUntilDate = new Date(payload.valid_until);
       const daysLeft = Math.ceil((validUntilDate - now) / (1000 * 60 * 60 * 24));

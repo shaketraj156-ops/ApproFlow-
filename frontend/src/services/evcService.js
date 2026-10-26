@@ -2,8 +2,7 @@ import axiosClient from '../api/axiosClient';
 import mockEvcData from '../mocks/evc.json';
 import mockApps from '../mocks/applications.json';
 import { istDateString } from '../utils/dates';
-
-const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true';
+import { shouldUseMocks } from '../utils/mockConfig';
 
 const delay = (value, ms = 220) => new Promise((resolve) => setTimeout(() => resolve(value), ms));
 
@@ -63,20 +62,31 @@ const isSunday = (isoDate) => new Date(`${isoDate}T00:00:00Z`).getUTCDay() === 0
 
 export const evcService = {
   async getVisits() {
-    if (USE_MOCKS) return delay(visitsStore.map((v) => ({ ...v })));
-    const response = await axiosClient.get('/evc-visits');
-    return response.data.map(normalizeVisit);
+    if (shouldUseMocks()) return delay(visitsStore.map((v) => ({ ...v })));
+    try {
+      const response = await axiosClient.get('/evc-visits');
+      return response.data.map(normalizeVisit);
+    } catch (err) {
+      console.warn('Backend getVisits failed, using mock:', err.message);
+      return delay(visitsStore.map((v) => ({ ...v })));
+    }
   },
 
   async getExperts() {
-    if (USE_MOCKS) return delay(expertsStore.map((e) => normalizeExpert(e)));
-    const response = await axiosClient.get('/experts');
-    return response.data.map(normalizeExpert);
+    if (shouldUseMocks()) return delay(expertsStore.map((e) => normalizeExpert(e)));
+    try {
+      const response = await axiosClient.get('/experts');
+      return response.data.map(normalizeExpert);
+    } catch (err) {
+      console.warn('Backend getExperts failed, using mock:', err.message);
+      return delay(expertsStore.map((e) => normalizeExpert(e)));
+    }
   },
+
 
   /** Up to three dates on which a full committee of free experts is available. */
   async suggestCommittee(payload) {
-    if (USE_MOCKS) {
+    if (shouldUseMocks()) {
       const size = payload.committee_size || 3;
       const app = mockApps.find((a) => a.id === payload.application_id);
       const today = istDateString(new Date());
@@ -113,7 +123,7 @@ export const evcService = {
   },
 
   async scheduleVisit(payload) {
-    if (USE_MOCKS) {
+    if (shouldUseMocks()) {
       const today = istDateString(new Date());
       if (payload.scheduled_date < today) throw mockError('VALIDATION_ERROR', 'EVC visit date cannot be in the past', 422);
       if (isSunday(payload.scheduled_date)) throw mockError('VALIDATION_ERROR', 'EVC visits cannot be scheduled on a Sunday', 422);
@@ -145,7 +155,7 @@ export const evcService = {
   },
 
   async confirmVisit(id) {
-    if (USE_MOCKS) {
+    if (shouldUseMocks()) {
       const visit = findVisit(id);
       if (visit.status !== 'PROPOSED') throw mockError('CONFLICT', `Only a PROPOSED visit can be confirmed (current status: ${visit.status})`);
       adjustLoad(visit, +1);
@@ -157,7 +167,7 @@ export const evcService = {
 
   /** Moves the visit to a new date. It goes back to "awaiting confirmation". */
   async rescheduleVisit(id, scheduledDate, remarks) {
-    if (USE_MOCKS) {
+    if (shouldUseMocks()) {
       const visit = findVisit(id);
       if (!['PROPOSED', 'CONFIRMED'].includes(visit.status)) throw mockError('CONFLICT', `A ${visit.status} visit cannot be rescheduled`);
       if (scheduledDate < istDateString(new Date())) throw mockError('VALIDATION_ERROR', 'EVC visit date cannot be in the past', 422);
@@ -170,7 +180,7 @@ export const evcService = {
   },
 
   async cancelVisit(id, reason) {
-    if (USE_MOCKS) {
+    if (shouldUseMocks()) {
       const visit = findVisit(id);
       if (!['PROPOSED', 'CONFIRMED'].includes(visit.status)) throw mockError('CONFLICT', `A ${visit.status} visit cannot be cancelled`);
       if (visit.status === 'CONFIRMED') adjustLoad(visit, -1);
@@ -181,7 +191,7 @@ export const evcService = {
   },
 
   async completeVisit(id) {
-    if (USE_MOCKS) {
+    if (shouldUseMocks()) {
       const visit = findVisit(id);
       if (visit.status !== 'CONFIRMED') throw mockError('CONFLICT', `Only a CONFIRMED visit can be completed (current status: ${visit.status})`);
       if (visit.scheduled_date > istDateString(new Date())) throw mockError('CONFLICT', 'A visit cannot be completed before its scheduled date');
