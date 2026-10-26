@@ -25,7 +25,10 @@ axiosClient.interceptors.request.use(
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // The portal signs in as a demo persona with a placeholder token that a real backend rightly rejects.
+    // For that session a 401 is expected: leave the user signed in and let the services fall back to mock data.
+    const isDemoSession = localStorage.getItem('approflow_token') === 'mock_jwt_token_approflow';
+    if (error.response?.status === 401 && !isDemoSession) {
       localStorage.removeItem('approflow_token');
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
