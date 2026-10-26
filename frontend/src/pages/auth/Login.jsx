@@ -6,6 +6,7 @@ import {
   Workflow, BellRing, CalendarCheck, ArrowLeft
 } from 'lucide-react';
 import { getRoleLandingRoute } from '../../routes/roleLanding';
+import { Valid8Logo } from '../../components/common/Valid8Logo';
 
 const PERSONAS = [
   {
@@ -71,8 +72,8 @@ export function Login() {
         </div>
 
         <Link to="/" className="relative flex items-center gap-3 w-fit" aria-label="Valid8 homepage">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center font-black text-lg shadow-lg">
-            V8
+          <div className="w-11 h-11 rounded-xl bg-white/10 backdrop-blur-sm p-1 flex items-center justify-center ring-1 ring-white/20 shadow-lg">
+            <Valid8Logo className="w-full h-full" />
           </div>
           <span className="text-xl font-bold tracking-tight">Valid8</span>
         </Link>
@@ -103,8 +104,8 @@ export function Login() {
       <div className="flex items-center justify-center p-6 sm:p-10">
         <div className="w-full max-w-md animate-fadeIn">
           <Link to="/" className="lg:hidden flex items-center gap-3 mb-8 w-fit" aria-label="Valid8 homepage">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center font-black text-white shadow">
-              V8
+            <div className="w-10 h-10 rounded-xl bg-slate-100 p-1 flex items-center justify-center shadow-xs">
+              <Valid8Logo className="w-full h-full" />
             </div>
             <span className="text-lg font-bold text-slate-900">Valid8</span>
           </Link>

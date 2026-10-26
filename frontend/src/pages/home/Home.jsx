@@ -2,6 +2,7 @@ import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getRoleLandingRoute } from '../../routes/roleLanding';
+import { Valid8Logo } from '../../components/common/Valid8Logo';
 import {
   Workflow, BellRing, CalendarCheck, ClipboardCheck, FileCheck2, BarChart3,
   History, ShieldCheck, ArrowRight, Menu, X, CheckCircle2, Building2,
@@ -158,9 +159,9 @@ function Reveal({ children, delay = 0, className = '' }) {
 function Logo({ light = false }) {
   return (
     <Link to="/" className="flex items-center gap-2.5" aria-label="Valid8 home">
-      <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center text-white font-extrabold text-sm shadow-sm">
-        V8
-      </span>
+      <div className={`w-9 h-9 rounded-xl p-1 flex items-center justify-center ${light ? 'bg-white/10 ring-1 ring-white/20' : 'bg-slate-900/5'}`}>
+        <Valid8Logo className="w-full h-full" />
+      </div>
       <span className={`text-lg font-bold tracking-tight ${light ? 'text-white' : 'text-slate-900'}`}>Valid8</span>
     </Link>
   );

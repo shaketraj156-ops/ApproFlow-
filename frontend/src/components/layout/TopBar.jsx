@@ -10,17 +10,18 @@ import { useClock } from '../../hooks/useClock';
 import { useNavBadges } from '../../hooks/useNavBadges';
 import { getRoleLandingRoute } from '../../routes/roleLanding';
 import { roleTheme, displayName, initials } from '../../utils/roleTheme';
+import { Valid8Logo } from '../common/Valid8Logo';
 
 const regionLabel = (region) => (region === 'ALL' ? 'All regions' : `${region.charAt(0)}${region.slice(1).toLowerCase()} region`);
 
 function Brand({ to }) {
   return (
     <Link to={to} className="flex items-center gap-2.5 shrink-0" aria-label="Valid8 home">
-      <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center text-white font-extrabold text-sm shadow-lg shadow-emerald-950/40 ring-1 ring-white/20">
-        V8
-      </span>
+      <div className="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-sm p-1 flex items-center justify-center ring-1 ring-white/20 shadow-md">
+        <Valid8Logo className="w-full h-full" />
+      </div>
       <span className="hidden sm:block leading-tight">
-        <span className="block text-base font-bold text-white">Valid8</span>
+        <span className="block text-base font-bold text-white tracking-tight">Valid8</span>
         <span className="block text-[10px] font-medium text-slate-400">AICTE 8-Point Norms Engine</span>
       </span>
     </Link>
