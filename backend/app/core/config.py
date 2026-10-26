@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "AICTE Approval Workflow Automation (SIH26262)"
+    PROJECT_NAME: str = "Valid8 - Verification, Approval & Licensure Integrated Dashboard"
     API_V1_PREFIX: str = "/api/v1"
     LOG_LEVEL: str = "INFO"
 

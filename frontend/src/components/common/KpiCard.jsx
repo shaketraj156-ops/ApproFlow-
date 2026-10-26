@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import { useCountUp } from '../../hooks/useCountUp';
 
 const VARIANTS = {
-  default: { card: 'bg-white border-slate-200', chip: 'bg-slate-100 text-slate-600', accent: 'bg-slate-300' },
-  warning: { card: 'bg-white border-amber-200', chip: 'bg-amber-100 text-amber-700', accent: 'bg-amber-400' },
-  danger: { card: 'bg-white border-red-200', chip: 'bg-red-100 text-red-700', accent: 'bg-red-500' },
-  success: { card: 'bg-white border-emerald-200', chip: 'bg-emerald-100 text-emerald-700', accent: 'bg-emerald-500' },
-  brand: { card: 'bg-white border-indigo-200', chip: 'bg-indigo-100 text-indigo-700', accent: 'bg-indigo-500' },
+  default: { card: 'bg-gradient-to-br from-white to-slate-50 border-slate-200', chip: 'bg-slate-100 text-slate-600', accent: 'bg-slate-300' },
+  warning: { card: 'bg-gradient-to-br from-white to-amber-50 border-amber-200', chip: 'bg-amber-100 text-amber-700', accent: 'bg-amber-400' },
+  danger: { card: 'bg-gradient-to-br from-white to-red-50 border-red-200', chip: 'bg-red-100 text-red-700', accent: 'bg-red-500' },
+  success: { card: 'bg-gradient-to-br from-white to-emerald-50 border-emerald-200', chip: 'bg-emerald-100 text-emerald-700', accent: 'bg-emerald-500' },
+  brand: { card: 'bg-gradient-to-br from-white to-indigo-50 border-indigo-200', chip: 'bg-indigo-100 text-indigo-700', accent: 'bg-indigo-500' },
 };
 
 function Body({ title, value, subtitle, icon: Icon, trend, loading, v }) {
@@ -29,7 +29,7 @@ function Body({ title, value, subtitle, icon: Icon, trend, loading, v }) {
           )}
         </div>
         {Icon && (
-          <div className={`shrink-0 p-2 sm:p-2.5 rounded-xl ${v.chip}`}>
+          <div className={`shrink-0 p-2 sm:p-2.5 rounded-xl shadow-sm ring-1 ring-black/5 ${v.chip}`}>
             <Icon className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
           </div>
         )}
@@ -44,7 +44,7 @@ function Body({ title, value, subtitle, icon: Icon, trend, loading, v }) {
  */
 export function KpiCard({ title, value, subtitle, icon, trend, variant = 'default', loading = false, to }) {
   const v = VARIANTS[variant] || VARIANTS.default;
-  const classes = `relative block overflow-hidden p-4 sm:p-5 rounded-2xl border shadow-card transition hover:shadow-md hover:-translate-y-0.5 ${v.card}`;
+  const classes = `relative block overflow-hidden p-4 sm:p-5 rounded-2xl border shadow-card card-lift shine ${v.card}`;
   const body = <Body title={title} value={value} subtitle={subtitle} icon={icon} trend={trend} loading={loading} v={v} />;
 
   return to ? (

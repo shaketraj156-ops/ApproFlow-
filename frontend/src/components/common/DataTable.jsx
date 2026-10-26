@@ -63,7 +63,7 @@ export function DataTable({ columns, data, onRowClick, loading = false, emptyMes
   return (
     <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-card">
       <table className="w-full text-left text-sm text-slate-700">
-        <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+        <thead className="bg-gradient-to-r from-slate-50 via-emerald-50/50 to-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
           <tr>
             {columns.map((col, idx) => {
               const sortable = !!col.sortValue;
@@ -102,7 +102,7 @@ export function DataTable({ columns, data, onRowClick, loading = false, emptyMes
                 }
               } : undefined}
               tabIndex={onRowClick ? 0 : undefined}
-              className={`transition hover:bg-emerald-50/40 ${onRowClick ? 'cursor-pointer focus:outline-none focus-visible:bg-emerald-50/60' : ''}`}
+              className={`transition odd:bg-white even:bg-slate-50/40 hover:bg-emerald-50/70 ${onRowClick ? 'cursor-pointer focus:outline-none focus-visible:bg-emerald-50/60' : ''}`}
             >
               {columns.map((col, colIdx) => (
                 <td key={colIdx} className={`px-3 sm:px-4 py-3.5 ${col.wrapOnMobile ? '' : 'whitespace-nowrap'} ${mobileClass(col)} ${col.className || ''}`}>

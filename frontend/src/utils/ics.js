@@ -46,10 +46,10 @@ export function buildVisitIcs(visit, now = new Date()) {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//ApproFlow//EVC Scheduler//EN',
+    'PRODID:-//Valid8//EVC Scheduler//EN',
     'CALSCALE:GREGORIAN',
     'BEGIN:VEVENT',
-    `UID:evc-${visit.id}@approflow`,
+    `UID:evc-${visit.id}@valid8`,
     `DTSTAMP:${stamp}`,
     `DTSTART;VALUE=DATE:${compact(day)}`,
     `DTEND;VALUE=DATE:${compact(nextDay(day))}`,

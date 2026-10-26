@@ -125,7 +125,7 @@ def health_check():
     """Liveness: the process is up. Does not touch the database."""
     return {
         "status": "healthy",
-        "service": "AICTE Approval Workflow Engine (SIH26262)",
+        "service": "Valid8 — Verification, Approval & Licensure Integrated Engine",
         "version": "1.0.0"
     }
 

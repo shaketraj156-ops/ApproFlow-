@@ -130,41 +130,42 @@ export function ApplicationDetail() {
         </div>
       )}
 
-      <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-card">
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-5">
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-emerald-950 to-emerald-700 text-white p-6 sm:p-7 rounded-3xl shadow-lg ring-1 ring-white/10">
+        <div className="absolute -top-20 -right-16 w-72 h-72 rounded-full" style={{ background: 'radial-gradient(closest-side, rgba(255,255,255,0.14), transparent)' }} aria-hidden="true" />
+        <div className="relative flex flex-col md:flex-row md:items-start justify-between gap-5">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-xl font-bold text-slate-900">{app.application_number}</h1>
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{app.application_number}</h1>
               <StatusBadge status={app.current_stage_code} />
               <DelayRiskTag score={app.delay_risk_score} />
             </div>
-            <p className="text-sm text-slate-500 mt-1.5">
-              {app.institution_name && <><strong className="text-slate-700">{app.institution_name}</strong> · </>}
+            <p className="text-sm text-white/70 mt-1.5">
+              {app.institution_name && <><strong className="text-white">{app.institution_name}</strong> · </>}
               {app.region} region · {app.application_type?.replace(/_/g, ' ').toLowerCase()}
             </p>
           </div>
-          <dl className="flex items-center gap-8 shrink-0">
-            <div>
-              <dt className="text-[11px] font-medium text-slate-400">Priority</dt>
+          <dl className="flex items-center gap-4 sm:gap-6 shrink-0">
+            <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5">
+              <dt className="text-[11px] font-medium text-white/60">Priority</dt>
               <dd className="mt-1"><PriorityPill score={app.priority_score} /></dd>
             </div>
-            <div>
-              <dt className="text-[11px] font-medium text-slate-400">Deficiencies</dt>
-              <dd className="mt-0.5 text-xl font-bold text-slate-900 tabular-nums">{app.deficiency_count}</dd>
+            <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5">
+              <dt className="text-[11px] font-medium text-white/60">Deficiencies</dt>
+              <dd className="mt-0.5 text-xl font-bold text-white tabular-nums">{app.deficiency_count}</dd>
             </div>
-            <div>
-              <dt className="text-[11px] font-medium text-slate-400">Intake</dt>
-              <dd className="mt-0.5 text-xl font-bold text-slate-900 tabular-nums">{app.intake_requested}</dd>
+            <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5">
+              <dt className="text-[11px] font-medium text-white/60">Intake</dt>
+              <dd className="mt-0.5 text-xl font-bold text-white tabular-nums">{app.intake_requested}</dd>
             </div>
           </dl>
         </div>
 
-        <div className="mt-7 pt-6 border-t border-slate-100">
+        <div className="relative mt-7 pt-6 border-t border-white/10 rounded-2xl bg-white p-5 -mx-1">
           <StageTimeline stages={stages} currentCode={app.current_stage_code} decided={decided} onHold={app.is_on_hold} />
         </div>
       </section>
 
-      <div role="tablist" aria-label="Application sections" className="flex gap-6 border-b border-slate-200">
+      <div role="tablist" aria-label="Application sections" className="inline-flex flex-wrap gap-1 p-1 rounded-2xl bg-white border border-slate-200 shadow-card">
         {TABS.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
@@ -173,8 +174,8 @@ export function ApplicationDetail() {
             aria-selected={tab === key}
             aria-controls={`panel-${key}`}
             onClick={() => setTab(key)}
-            className={`inline-flex items-center gap-2 pb-3 text-sm font-semibold transition border-b-2 -mb-px ${
-              tab === key ? 'border-emerald-600 text-emerald-800' : 'border-transparent text-slate-500 hover:text-slate-800'
+            className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold transition rounded-xl ${
+              tab === key ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/25' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <Icon className="w-4 h-4" aria-hidden="true" /> {label}

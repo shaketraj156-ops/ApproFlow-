@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getRoleLandingRoute } from '../../routes/roleLanding';
@@ -8,6 +8,9 @@ import {
   UserCheck, Settings2, Eye, KeyRound, TrendingUp, Scale, Lock, Layers,
   ChevronDown, Sparkles, Clock
 } from 'lucide-react';
+
+// Three.js is large, so the scene loads after the page is already usable.
+const HeroScene = lazy(() => import('../../components/home/HeroScene'));
 
 const NAV_LINKS = [
   { href: '#features', label: 'Features' },
@@ -95,7 +98,7 @@ const PRINCIPLES = [
 
 const FAQ = [
   {
-    q: 'Does ApproFlow approve or reject applications?',
+    q: 'Does Valid8 approve or reject applications?',
     a: 'No. It tracks, reminds and escalates. Officers move an application between stages and record every decision themselves.',
   },
   {
@@ -120,7 +123,7 @@ function usePortalLink() {
     : { to: '/login', signedIn: false };
 }
 
-/** Fades and lifts content in as it scrolls into view. Skips the animation for reduced-motion users. */
+/** Fades and lifts content in each time it scrolls into view. Skips the animation for reduced-motion users. */
 function Reveal({ children, delay = 0, className = '' }) {
   const ref = useRef(null);
   const [shown, setShown] = useState(false);
@@ -133,12 +136,8 @@ function Reveal({ children, delay = 0, className = '' }) {
       return undefined;
     }
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setShown(true);
-          observer.disconnect();
-        }
-      },
+      // Not disconnected: the block resets when it leaves the screen, so the entrance plays on every scroll.
+      ([entry]) => setShown(entry.isIntersecting),
       { threshold: 0.12 }
     );
     observer.observe(node);
@@ -149,7 +148,7 @@ function Reveal({ children, delay = 0, className = '' }) {
     <div
       ref={ref}
       style={{ transitionDelay: shown ? `${delay}ms` : '0ms' }}
-      className={`transition duration-700 ease-out ${shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'} ${className}`}
+      className={`transition-[opacity,transform] will-change-[opacity,transform] duration-700 ease-out ${shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'} ${className}`}
     >
       {children}
     </div>
@@ -158,11 +157,11 @@ function Reveal({ children, delay = 0, className = '' }) {
 
 function Logo({ light = false }) {
   return (
-    <Link to="/" className="flex items-center gap-2.5" aria-label="ApproFlow home">
+    <Link to="/" className="flex items-center gap-2.5" aria-label="Valid8 home">
       <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center text-white font-extrabold text-sm shadow-sm">
-        AF
+        V8
       </span>
-      <span className={`text-lg font-bold tracking-tight ${light ? 'text-white' : 'text-slate-900'}`}>ApproFlow</span>
+      <span className={`text-lg font-bold tracking-tight ${light ? 'text-white' : 'text-slate-900'}`}>Valid8</span>
     </Link>
   );
 }
@@ -179,7 +178,7 @@ function SiteHeader() {
   }, [open]);
 
   return (
-    <header className="sticky top-0 z-50 bg-slate-900/85 backdrop-blur-md border-b border-white/10">
+    <header className="sticky top-0 z-50 bg-slate-900 border-b border-white/10">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <Logo light />
 
@@ -241,15 +240,15 @@ function ProductPreview() {
   const funnel = [90, 70, 52, 38, 24, 14];
 
   return (
-    <div aria-hidden="true" className="relative">
-      <div className="absolute -inset-6 bg-gradient-to-tr from-emerald-400/25 via-transparent to-indigo-400/25 blur-3xl rounded-[2rem]" />
+    <div aria-hidden="true" className="relative preview-3d">
+      <div className="absolute -inset-6 bg-gradient-to-tr from-emerald-400/20 via-transparent to-indigo-400/20 rounded-[2rem]" />
 
       <div className="relative rounded-2xl border border-white/10 bg-white shadow-2xl overflow-hidden">
         <div className="flex items-center gap-1.5 px-4 py-3 border-b border-slate-100 bg-slate-50">
           <span className="w-2.5 h-2.5 rounded-full bg-red-300" />
           <span className="w-2.5 h-2.5 rounded-full bg-amber-300" />
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-300" />
-          <span className="ml-3 text-[11px] font-medium text-slate-400">ApproFlow · My Queue</span>
+          <span className="ml-3 text-[11px] font-medium text-slate-400">Valid8 · My Queue</span>
         </div>
 
         <div className="flex">
@@ -331,21 +330,24 @@ function Hero() {
     <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-900 text-white">
       <div className="absolute inset-0 opacity-[0.07]" aria-hidden="true"
         style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '44px 44px' }} />
-      <div className="absolute -top-24 -right-24 w-[28rem] h-[28rem] rounded-full bg-emerald-500/15 blur-3xl" aria-hidden="true" />
-      <div className="absolute -bottom-32 -left-16 w-[28rem] h-[28rem] rounded-full bg-indigo-500/15 blur-3xl" aria-hidden="true" />
+      <div className="absolute -top-24 -right-24 w-[28rem] h-[28rem] rounded-full" style={{ background: 'radial-gradient(closest-side, rgba(16,185,129,0.3), transparent)' }} aria-hidden="true" />
+      <div className="absolute -bottom-32 -left-16 w-[28rem] h-[28rem] rounded-full" style={{ background: 'radial-gradient(closest-side, rgba(99,102,241,0.3), transparent)' }} aria-hidden="true" />
+      <Suspense fallback={null}>
+        <HeroScene className="absolute inset-0" />
+      </Suspense>
 
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 pt-16 pb-28 sm:pt-24 sm:pb-36 grid lg:grid-cols-2 gap-16 items-center">
         <div className="animate-fadeIn">
           <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-emerald-200 text-xs font-semibold">
             <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
-            SIH26262 · AICTE approval workflow
+            AICTE 8-Point Norms Approval Workflow
           </span>
           <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.05]">
             Approvals that move on time,{' '}
             <span className="bg-gradient-to-r from-emerald-300 to-teal-200 bg-clip-text text-transparent">every time.</span>
           </h1>
           <p className="mt-6 text-lg text-slate-300 leading-relaxed max-w-xl">
-            ApproFlow moves AICTE applications through configurable stages, watches every deadline,
+            Valid8 moves AICTE applications through configurable stages, watches every deadline,
             schedules expert visits without clashes, and escalates automatically when something is late.
           </p>
           <div className="mt-9 flex flex-wrap gap-3">
@@ -424,7 +426,7 @@ function Features() {
         <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           <Reveal className="sm:col-span-2">
             <article className="relative h-full overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-emerald-900 text-white p-7 shadow-card">
-              <div className="absolute -right-10 -top-10 w-48 h-48 rounded-full bg-emerald-400/10 blur-2xl" aria-hidden="true" />
+              <div className="absolute -right-10 -top-10 w-48 h-48 rounded-full" style={{ background: 'radial-gradient(closest-side, rgba(52,211,153,0.2), transparent)' }} aria-hidden="true" />
               <span className="relative w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center">
                 <FirstIcon className="w-5 h-5 text-emerald-300" aria-hidden="true" />
               </span>
@@ -545,7 +547,7 @@ function Roles() {
 function Escalation() {
   return (
     <section id="escalation" className="scroll-mt-20 py-20 bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950 text-white relative overflow-hidden">
-      <div className="absolute -top-24 left-1/2 w-[32rem] h-[32rem] -translate-x-1/2 rounded-full bg-emerald-500/10 blur-3xl" aria-hidden="true" />
+      <div className="absolute -top-24 left-1/2 w-[32rem] h-[32rem] -translate-x-1/2 rounded-full" style={{ background: 'radial-gradient(closest-side, rgba(16,185,129,0.2), transparent)' }} aria-hidden="true" />
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6">
         <Reveal>
           <SectionHeading
@@ -634,8 +636,8 @@ function CallToAction() {
   const portal = usePortalLink();
   return (
     <section className="relative overflow-hidden py-24 bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 text-white">
-      <div className="absolute -top-20 -left-16 w-80 h-80 rounded-full bg-white/10 blur-3xl" aria-hidden="true" />
-      <div className="absolute -bottom-24 -right-10 w-96 h-96 rounded-full bg-teal-300/10 blur-3xl" aria-hidden="true" />
+      <div className="absolute -top-20 -left-16 w-80 h-80 rounded-full" style={{ background: 'radial-gradient(closest-side, rgba(255,255,255,0.2), transparent)' }} aria-hidden="true" />
+      <div className="absolute -bottom-24 -right-10 w-96 h-96 rounded-full" style={{ background: 'radial-gradient(closest-side, rgba(94,234,212,0.2), transparent)' }} aria-hidden="true" />
       <Reveal>
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">See your queue, your deadlines, your alerts.</h2>
@@ -662,8 +664,8 @@ function SiteFooter() {
         <div>
           <Logo light />
           <p className="mt-3 text-xs max-w-md leading-relaxed">
-            AICTE Approval Workflow Automation, Compliance Monitoring and Alert Management System (SIH26262).
-            Stage names, SLAs and escalation values are placeholders, not official AICTE figures.
+            Valid8 — Verification, Approval & Licensure Integrated Dashboard for 8-point AICTE Norms.
+            Configurable stages, automated SLA monitoring, and delay risk intelligence.
           </p>
         </div>
         <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm" aria-label="Footer">
@@ -683,7 +685,7 @@ function SiteFooter() {
 export function Home() {
   useEffect(() => {
     const previous = document.title;
-    document.title = 'ApproFlow | AICTE Approval Workflow Automation';
+    document.title = 'Valid8 | Verification, Approval & Licensure Integrated Dashboard';
     return () => { document.title = previous; };
   }, []);
 

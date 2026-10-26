@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BellOff, CheckCheck, Check, ArrowUpRight } from 'lucide-react';
+import { BellOff, BellRing, CheckCheck, Check, ArrowUpRight } from 'lucide-react';
 import { alertsService } from '../../services/alertsService';
 import { PageHeader } from '../../components/common/PageHeader';
 import { SeverityBadge } from '../../components/common/SeverityBadge';
@@ -90,6 +90,7 @@ export function Alerts() {
   return (
     <div className="space-y-6 animate-fadeIn">
       <PageHeader
+        icon={BellRing}
         title="Alerts center"
         description="Deadline reminders, SLA breaches and widening escalations"
         actions={tab === 'OPEN' && alerts.length > 1 && (
@@ -103,7 +104,7 @@ export function Alerts() {
         )}
       />
 
-      <div role="tablist" aria-label="Alert status" className="flex gap-6 border-b border-slate-200">
+      <div role="tablist" aria-label="Alert status" className="inline-flex flex-wrap gap-1 p-1 rounded-2xl bg-white border border-slate-200 shadow-card">
         {TABS.map(({ key, label }) => (
           <button
             key={key}
@@ -112,13 +113,13 @@ export function Alerts() {
             aria-selected={tab === key}
             aria-controls="alerts-panel"
             onClick={() => setTab(key)}
-            className={`inline-flex items-center gap-2 pb-3 text-sm font-semibold transition border-b-2 -mb-px ${
-              tab === key ? 'border-emerald-600 text-emerald-800' : 'border-transparent text-slate-500 hover:text-slate-800'
+            className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold transition rounded-xl ${
+              tab === key ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/25' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             {label}
             {counts[key] !== null && (
-              <span className={`px-1.5 min-w-5 text-center rounded-full text-[11px] font-bold ${tab === key ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'}`}>
+              <span className={`px-1.5 min-w-5 text-center rounded-full text-[11px] font-bold ${tab === key ? 'bg-white/25 text-white' : 'bg-slate-200 text-slate-700'}`}>
                 {counts[key]}
               </span>
             )}
@@ -136,7 +137,7 @@ export function Alerts() {
         )}
 
         {!loading && !error && alerts.map((alt) => (
-          <article key={alt.id} className="p-5 rounded-2xl border border-slate-200 bg-white shadow-card flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <article key={alt.id} className={`p-5 rounded-2xl border border-slate-200 border-l-4 ${['CRITICAL', 'HIGH'].includes(alt.severity?.toUpperCase()) ? 'border-l-red-500 bg-gradient-to-r from-red-50/60 to-white' : alt.severity?.toUpperCase() === 'MEDIUM' ? 'border-l-amber-400 bg-gradient-to-r from-amber-50/60 to-white' : 'border-l-emerald-400 bg-gradient-to-r from-emerald-50/50 to-white'} shadow-card card-lift flex flex-col md:flex-row md:items-center justify-between gap-4`}>
             <div className="space-y-1.5 min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <SeverityBadge severity={alt.severity} />

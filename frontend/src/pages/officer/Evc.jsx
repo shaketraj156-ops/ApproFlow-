@@ -175,7 +175,7 @@ export function Evc() {
         <KpiCard title="Empanelled experts" value={experts.length} subtitle={`${experts.filter((e) => e.is_available).length} available now`} icon={Users} loading={loading} />
       </div>
 
-      <div role="tablist" aria-label="EVC sections" className="flex gap-6 border-b border-slate-200">
+      <div role="tablist" aria-label="EVC sections" className="inline-flex flex-wrap gap-1 p-1 rounded-2xl bg-white border border-slate-200 shadow-card">
         {[
           { key: 'visits', label: 'Visits', count: visits.length },
           { key: 'experts', label: 'Experts roster', count: experts.length },
@@ -183,12 +183,12 @@ export function Evc() {
           <button
             key={t.key} role="tab" id={`evc-tab-${t.key}`} aria-selected={tab === t.key} aria-controls={`evc-panel-${t.key}`}
             onClick={() => setTab(t.key)}
-            className={`inline-flex items-center gap-2 pb-3 text-sm font-semibold transition border-b-2 -mb-px ${
-              tab === t.key ? 'border-emerald-600 text-emerald-800' : 'border-transparent text-slate-500 hover:text-slate-800'
+            className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold transition rounded-xl ${
+              tab === t.key ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/25' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             {t.label}
-            <span className={`px-1.5 min-w-5 text-center rounded-full text-[11px] font-bold ${tab === t.key ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'}`}>{t.count}</span>
+            <span className={`px-1.5 min-w-5 text-center rounded-full text-[11px] font-bold ${tab === t.key ? 'bg-white/25 text-white' : 'bg-slate-200 text-slate-700'}`}>{t.count}</span>
           </button>
         ))}
       </div>

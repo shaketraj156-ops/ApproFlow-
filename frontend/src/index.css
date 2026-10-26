@@ -117,3 +117,82 @@ body {
   animation: routeBar 0.85s ease-out forwards;
   pointer-events: none;
 }
+
+/* ---------- 3D and depth ---------- */
+.preview-3d {
+  transform: perspective(1400px) rotateY(-9deg) rotateX(4deg);
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.preview-3d:hover { transform: perspective(1400px) rotateY(-2deg) rotateX(1deg); }
+@media (max-width: 1023px) { .preview-3d { transform: none; } }
+
+/* Dashboard backdrop: soft colour washes instead of flat grey */
+.app-backdrop {
+  background-color: #f8fafc;
+  background-image:
+    radial-gradient(60rem 30rem at 100% -10%, rgba(16, 185, 129, 0.10), transparent 60%),
+    radial-gradient(50rem 28rem at -10% 0%, rgba(99, 102, 241, 0.08), transparent 60%);
+}
+
+/* Cards that lift and tilt slightly toward the pointer */
+.card-lift {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.card-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px -12px rgba(15, 23, 42, 0.22), 0 4px 10px -6px rgba(15, 23, 42, 0.12);
+}
+
+/* A light sweep across a card on hover */
+.shine { position: relative; overflow: hidden; }
+.shine::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.55) 50%, transparent 65%);
+  transform: translateX(-120%);
+  transition: transform 0.7s ease;
+  pointer-events: none;
+}
+.shine:hover::before { transform: translateX(120%); }
+
+.hero-animated { background-size: 200% 200%; }
+
+/* ---------- Login ---------- */
+@keyframes cardIn { from { opacity: 0; transform: translateY(18px) scale(0.98); } to { opacity: 1; transform: none; } }
+.persona-in { animation: cardIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+@keyframes orbSpin { to { transform: rotate(360deg); } }
+.orb-spin { animation: orbSpin 40s linear infinite; }
+.orb-spin-rev { animation: orbSpin 60s linear infinite reverse; }
+.persona-card { transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease; }
+.persona-card:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 16px 32px -14px rgba(5, 150, 105, 0.35); }
+.text-gradient { background: linear-gradient(90deg, #6ee7b7, #5eead4 50%, #a5b4fc); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* ---------- Animated backgrounds (transform only, so they stay on the GPU) ---------- */
+@keyframes blobA { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(60px, 40px, 0) scale(1.15); } }
+@keyframes blobB { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(-70px, 30px, 0) scale(1.1); } }
+@keyframes blobC { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(40px, -50px, 0) scale(1.2); } }
+@keyframes dotsDrift { to { transform: translate3d(22px, 22px, 0); } }
+@keyframes orbit { to { transform: rotate(360deg); } }
+
+.bg-blob { position: absolute; border-radius: 9999px; will-change: transform; }
+.bg-blob-a { animation: blobA 18s ease-in-out infinite; }
+.bg-blob-b { animation: blobB 22s ease-in-out infinite; }
+.bg-blob-c { animation: blobC 26s ease-in-out infinite; }
+
+/* A dotted pattern that slowly slides; the layer is larger than its box so the edge never shows */
+.dots-drift { position: absolute; inset: -22px; animation: dotsDrift 6s linear infinite; will-change: transform; }
+
+/* A soft light that travels across a banner */
+@keyframes bannerSweep { 0% { transform: translateX(-60%); } 100% { transform: translateX(160%); } }
+.banner-sweep::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.10), transparent);
+  animation: bannerSweep 7s ease-in-out infinite;
+  pointer-events: none;
+}
+.orbit-ring { position: absolute; border-radius: 9999px; border: 1px dashed rgba(255, 255, 255, 0.22); animation: orbit 30s linear infinite; }
+.orbit-ring::after { content: ''; position: absolute; top: -4px; left: 50%; width: 8px; height: 8px; border-radius: 9999px; background: rgba(255, 255, 255, 0.75); box-shadow: 0 0 12px rgba(255, 255, 255, 0.8); }

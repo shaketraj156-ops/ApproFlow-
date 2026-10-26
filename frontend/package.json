@@ -1,5 +1,5 @@
 {
-  "name": "approflow-frontend",
+  "name": "valid8-frontend",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -19,7 +19,8 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.3",
     "recharts": "^2.12.3",
-    "tailwind-merge": "^2.2.2"
+    "tailwind-merge": "^2.2.2",
+    "three": "^0.160.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",

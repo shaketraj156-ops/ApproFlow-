@@ -15,13 +15,13 @@ const regionLabel = (region) => (region === 'ALL' ? 'All regions' : `${region.ch
 
 function Brand({ to }) {
   return (
-    <Link to={to} className="flex items-center gap-2.5 shrink-0" aria-label="ApproFlow home">
+    <Link to={to} className="flex items-center gap-2.5 shrink-0" aria-label="Valid8 home">
       <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center text-white font-extrabold text-sm shadow-lg shadow-emerald-950/40 ring-1 ring-white/20">
-        AF
+        V8
       </span>
       <span className="hidden sm:block leading-tight">
-        <span className="block text-base font-bold text-white">ApproFlow</span>
-        <span className="block text-[10px] font-medium text-slate-400">AICTE Approval Engine</span>
+        <span className="block text-base font-bold text-white">Valid8</span>
+        <span className="block text-[10px] font-medium text-slate-400">AICTE 8-Point Norms Engine</span>
       </span>
     </Link>
   );
@@ -248,7 +248,7 @@ export function TopBar() {
   }, [location.pathname]);
 
   return (
-    <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md text-white shadow-lg shadow-slate-900/10">
+    <header className="sticky top-0 z-40 bg-slate-900 text-white shadow-lg shadow-slate-900/10">
       {/* A soft glow in the colour of the signed-in role. It sits in its own clipped layer so the account menu can still overflow the header. */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
         <div className={`absolute -top-24 right-[10%] w-96 h-48 rounded-full blur-3xl ${theme.glow}`} />
@@ -268,12 +268,13 @@ export function TopBar() {
 
         <button
           onClick={() => setSearchOpen(true)}
-          className="flex-1 max-w-md inline-flex items-center gap-2.5 pl-3.5 pr-2.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.06] hover:bg-white/10 hover:border-white/20 text-slate-300 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+          className="group flex-1 max-w-md inline-flex items-center gap-2.5 pl-3 pr-2 py-2 rounded-2xl border border-emerald-400/20 bg-gradient-to-r from-white/[0.08] to-emerald-400/[0.07] shadow-inner shadow-black/20 hover:border-emerald-400/50 hover:from-white/[0.12] hover:shadow-[0_0_0_3px_rgba(52,211,153,0.12)] text-slate-300 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
           aria-label="Quick search (Ctrl+K)"
         >
-          <Search className="w-4 h-4 shrink-0 text-slate-400" aria-hidden="true" />
-          <span className="hidden sm:inline truncate">Search applications, pages…</span>
-          <kbd className="hidden md:inline ml-auto text-[10px] font-semibold text-slate-300 border border-white/15 bg-white/10 rounded px-1.5 py-0.5">Ctrl K</kbd>
+          <span className="w-7 h-7 shrink-0 rounded-lg bg-emerald-400/15 text-emerald-300 flex items-center justify-center group-hover:bg-emerald-400/25 transition">
+            <Search className="w-4 h-4" aria-hidden="true" />
+          </span>
+          <span className="hidden sm:inline truncate text-slate-400 group-hover:text-slate-200 transition">Search applications, pages…</span>
         </button>
 
         <div className="ml-auto flex items-center gap-2 sm:gap-3">

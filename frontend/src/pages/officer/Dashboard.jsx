@@ -210,8 +210,11 @@ export function OfficerDashboard() {
 
       <div className="grid grid-cols-1 min-[1400px]:grid-cols-3 gap-6 items-start">
         <div className="min-[1400px]:col-span-2 space-y-4 min-w-0">
-          <h2 className="flex items-center gap-2 text-base font-bold text-slate-900">
-            <Flame className="w-5 h-5 text-red-600" aria-hidden="true" /> Needs action first
+          <h2 className="flex items-center gap-2.5 text-lg font-extrabold text-slate-900">
+            <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-red-500 to-orange-400 text-white flex items-center justify-center shadow-md shadow-red-500/30">
+              <Flame className="w-4 h-4" aria-hidden="true" />
+            </span>
+            Needs action first
           </h2>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -223,7 +226,7 @@ export function OfficerDashboard() {
                 onChange={(e) => setParam('q', e.target.value)}
                 placeholder="Search number or institution"
                 aria-label="Search the queue"
-                className="w-full pl-9 pr-8 py-2 text-sm bg-white border border-slate-300 rounded-xl placeholder:text-slate-400"
+                className="w-full pl-9 pr-8 py-2 text-sm bg-white border border-slate-200 rounded-xl shadow-xs placeholder:text-slate-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition"
               />
               {query && (
                 <button onClick={() => setParam('q', '')} aria-label="Clear search" className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-slate-400 hover:text-slate-700">
@@ -251,7 +254,7 @@ export function OfficerDashboard() {
                   aria-pressed={filterKey === key}
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
                     filterKey === key
-                      ? 'bg-slate-900 text-white border-slate-900'
+                      ? 'bg-gradient-to-r from-slate-900 to-emerald-800 text-white border-transparent shadow-md'
                       : 'bg-white text-slate-600 border-slate-300 hover:border-slate-400'
                   }`}
                 >
@@ -321,7 +324,7 @@ export function OfficerDashboard() {
           ) : (
             <ul className="space-y-3">
               {alerts.slice(0, 5).map((alt) => (
-                <li key={alt.id} className="rounded-xl border border-slate-200 p-3 hover:border-slate-300 transition">
+                <li key={alt.id} className="rounded-xl border border-slate-200 border-l-4 border-l-emerald-400 bg-gradient-to-r from-slate-50/70 to-white p-3 hover:shadow-md hover:-translate-y-0.5 transition">
                   <div className="flex items-center justify-between gap-2">
                     <SeverityBadge severity={alt.severity} />
                     <span className="text-[11px] text-slate-400">{formatDate(alt.created_at, true)}</span>

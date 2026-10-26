@@ -1,5 +1,5 @@
 /**
- * Central color token system matching SIH26262 Design Rules:
+ * Central color token system matching Valid8 AICTE Design Rules:
  * Green: On track (> 3 days left, valid, verified)
  * Orange: Due soon (0 to 3 days left, expiring)
  * Red: Overdue (past due, expired, critical)

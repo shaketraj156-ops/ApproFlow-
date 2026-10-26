@@ -27,14 +27,15 @@ export function RoleHero({ summary, health, ring, loading = false, actions = [],
   const now = new Date();
 
   return (
-    <section className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${theme.gradient} text-white p-6 sm:p-8 shadow-lg`}>
+    <section className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${theme.gradient} hero-animated text-white p-6 sm:p-8 shadow-xl ring-1 ring-white/10 banner-sweep`}>
       <div className={`absolute -top-24 -right-20 w-80 h-80 rounded-full blur-3xl ${theme.glow}`} aria-hidden="true" />
       <div className="absolute -bottom-28 -left-16 w-72 h-72 rounded-full bg-white/5 blur-3xl" aria-hidden="true" />
-      <div
-        className="absolute inset-0 opacity-[0.06]"
-        aria-hidden="true"
-        style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '22px 22px' }}
-      />
+      <div className="absolute right-10 top-8 w-24 h-24 rounded-3xl border border-white/15 bg-white/5 rotate-12 hidden md:block" aria-hidden="true" />
+      <div className="absolute right-40 bottom-6 w-12 h-12 rounded-2xl border border-white/15 bg-white/5 -rotate-12 hidden md:block" aria-hidden="true" />
+      <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div className="dots-drift opacity-[0.07]" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '22px 22px' }} />
+      </div>
+      <div className="orbit-ring right-1/3 -top-12 w-44 h-44 hidden lg:block" aria-hidden="true" />
 
       <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
         <div className="min-w-0">
@@ -76,7 +77,7 @@ export function RoleHero({ summary, health, ring, loading = false, actions = [],
         </div>
 
         {(health || ring) && (
-          <div className="shrink-0 rounded-2xl bg-white/[0.07] border border-white/10 backdrop-blur-sm px-5 py-4">
+          <div className="shrink-0 rounded-2xl bg-white/[0.07] border border-white/10 px-5 py-4">
             <p className="text-[11px] font-bold uppercase tracking-widest text-white/60 mb-3">{ring?.title ?? 'Deadline health'}</p>
             {ring ? (
               <HealthRing segments={ring.segments} centerValue={ring.centerValue} centerLabel={ring.centerLabel} loading={loading} />

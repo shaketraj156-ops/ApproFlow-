@@ -41,7 +41,7 @@ describe('buildVisitIcs', () => {
   });
 
   it('has a stable id so re-adding does not duplicate the event', () => {
-    expect(ics).toContain('UID:evc-v-1@approflow');
+    expect(ics).toContain('UID:evc-v-1@valid8');
   });
 
   it('folds long lines at 75 characters', () => {

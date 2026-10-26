@@ -1,3 +1,5 @@
+import { PageHeader } from '../../components/common/PageHeader';
+import { Settings2 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { workflowService } from '../../services/workflowService';
 import axiosClient from '../../api/axiosClient';
@@ -32,23 +34,21 @@ export function WorkflowAdmin() {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Workflow & Rules Administration</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Configure stage orders, SLA durations, escalation thresholds without code modifications
-          </p>
-        </div>
-
-        <button
-          onClick={handleRunDailyChecks}
-          disabled={runningJob}
-          className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl shadow-xs transition flex items-center space-x-2"
-        >
-          {runningJob ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-          <span>Trigger Manual Daily Check</span>
-        </button>
-      </div>
+      <PageHeader
+        icon={Settings2}
+        title="Workflow & Rules Administration"
+        description="Configure stage orders, SLA durations, escalation thresholds without code modifications"
+        actions={(
+          <button
+            onClick={handleRunDailyChecks}
+            disabled={runningJob}
+            className="px-4 py-2.5 bg-white hover:bg-white/90 disabled:opacity-70 text-slate-900 text-sm font-semibold rounded-xl shadow-md transition flex items-center gap-2"
+          >
+            {runningJob ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+            <span>Trigger Manual Daily Check</span>
+          </button>
+        )}
+      />
 
       {jobResult && (
         <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 space-y-1">

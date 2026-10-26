@@ -1,3 +1,4 @@
+import { PageHeader } from '../../components/common/PageHeader';
 import React, { useState, useEffect } from 'react';
 import { 
   FolderCheck, ShieldAlert, CheckCircle2, Clock, 
@@ -68,39 +69,32 @@ export function Documents() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-            <FolderCheck className="w-7 h-7 text-emerald-600" />
-            Statutory Document Validity & Expiry Watch
-          </h1>
-          <p className="text-sm text-slate-500 font-medium mt-1">
-            Continuous watchdog for Fire Safety, Environmental Clearances, Land Deeds, and University Affiliations
-          </p>
-        </div>
-        <button
-          onClick={() => setIsNewOpen(true)}
-          className="inline-flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl shadow-xs transition"
-        >
-          <PlusCircle className="w-4 h-4" />
-          <span>Register Compliance Document</span>
-        </button>
-      </div>
+      <PageHeader
+        icon={FolderCheck}
+        title="Statutory Document Validity & Expiry Watch"
+        description="Continuous watchdog for Fire Safety, Environmental Clearances, Land Deeds, and University Affiliations"
+        actions={(
+          <button onClick={() => setIsNewOpen(true)} className="inline-flex items-center justify-center gap-2 bg-white hover:bg-white/90 text-slate-900 font-semibold px-4 py-2.5 rounded-xl shadow-md transition">
+            <PlusCircle className="w-4 h-4" />
+            <span>Register Compliance Document</span>
+          </button>
+        )}
+      />
 
       {/* Expiry Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-rose-200 shadow-xs flex items-center justify-between">
+        <div className="bg-gradient-to-br from-white to-rose-50 p-5 rounded-2xl border border-rose-200 shadow-card card-lift shine border-l-4 border-l-rose-500 flex items-center justify-between">
           <div>
             <p className="text-xs font-bold text-rose-500 uppercase tracking-wider">Expired Documents</p>
-            <p className="text-2xl font-black text-rose-600 mt-1">{expiredDocs.length}</p>
+            <p className="text-3xl font-black text-rose-600 mt-1">{expiredDocs.length}</p>
             <p className="text-[11px] text-slate-400 mt-0.5">Deficiency notice triggered</p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
+          <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 shadow-sm ring-1 ring-rose-200 flex items-center justify-center font-bold">
             <AlertTriangle className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-amber-200 shadow-xs flex items-center justify-between">
+        <div className="bg-gradient-to-br from-white to-amber-50 p-5 rounded-2xl border border-amber-200 shadow-card card-lift shine border-l-4 border-l-amber-500 flex items-center justify-between">
           <div>
             <p className="text-xs font-bold text-amber-500 uppercase tracking-wider">Expiring in 60 Days</p>
             <p className="text-2xl font-black text-amber-600 mt-1">{expiringSoonDocs.length}</p>
@@ -111,7 +105,7 @@ export function Documents() {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-emerald-200 shadow-xs flex items-center justify-between">
+        <div className="bg-gradient-to-br from-white to-emerald-50 p-5 rounded-2xl border border-emerald-200 shadow-card card-lift shine border-l-4 border-l-emerald-500 flex items-center justify-between">
           <div>
             <p className="text-xs font-bold text-emerald-500 uppercase tracking-wider">Verified Valid</p>
             <p className="text-2xl font-black text-emerald-600 mt-1">{validDocs.length}</p>
@@ -124,7 +118,7 @@ export function Documents() {
       </div>
 
       {/* Main Table Container */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden border-t-4 border-t-emerald-500">
         {/* Filter bar */}
         <div className="p-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
           <div className="flex items-center gap-2">

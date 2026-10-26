@@ -111,6 +111,7 @@ export function AuditLog() {
   return (
     <div className="space-y-6 animate-fadeIn">
       <PageHeader
+        icon={History}
         title="Audit trail"
         description="Every move, hold, assignment and configuration change: who did it, and when. Entries cannot be edited."
       />
@@ -125,7 +126,7 @@ export function AuditLog() {
               onClick={() => setEntity(e)}
               aria-pressed={entity === e}
               className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
-                entity === e ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-300 hover:border-slate-400'
+                entity === e ? 'bg-gradient-to-r from-slate-900 to-emerald-800 text-white border-transparent shadow-md' : 'bg-white text-slate-600 border-slate-300 hover:border-slate-400'
               }`}
             >
               {e === 'ALL' ? `All events (${logs.length})` : `${titleCase(e)} (${logs.filter((l) => l.entity_type === e).length})`}
@@ -151,7 +152,7 @@ export function AuditLog() {
                 <span className={`absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center ring-4 ring-slate-50 ${meta.tone}`}>
                   <Icon className="w-4 h-4" aria-hidden="true" />
                 </span>
-                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-card hover:border-slate-300 transition">
+                <div className="rounded-2xl border border-slate-200 border-l-4 border-l-emerald-300 bg-white p-4 shadow-card card-lift">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <h2 className="text-sm font-bold text-slate-900">{meta.label || titleCase(log.action)}</h2>
                     <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">{titleCase(log.entity_type)}</span>

@@ -87,12 +87,14 @@ export function CommandPalette({ open, onClose }) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[60] flex items-start justify-center pt-[12vh] px-4 bg-slate-900/50 backdrop-blur-sm"
+      className="fixed inset-0 z-[60] flex items-start justify-center pt-[12vh] px-4 bg-gradient-to-b from-slate-900/70 to-emerald-950/60"
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div role="dialog" aria-modal="true" aria-label="Quick search" className="w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-fadeIn">
-        <div className="flex items-center gap-3 px-4 border-b border-slate-100">
-          <Search className="w-4 h-4 text-slate-400 shrink-0" aria-hidden="true" />
+      <div role="dialog" aria-modal="true" aria-label="Quick search" className="w-full max-w-xl bg-white rounded-3xl shadow-2xl shadow-emerald-900/30 ring-1 ring-white/20 border border-slate-200 overflow-hidden animate-fadeIn">
+        <div className="flex items-center gap-3 px-5 border-b border-slate-100 bg-gradient-to-r from-emerald-50 via-white to-indigo-50/60">
+          <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/30 shrink-0">
+            <Search className="w-4 h-4" aria-hidden="true" />
+          </span>
           <input
             ref={inputRef}
             value={query}
@@ -104,9 +106,9 @@ export function CommandPalette({ open, onClose }) {
             aria-activedescendant={results[active] ? `palette-${active}` : undefined}
             aria-label="Search pages and applications"
             placeholder={APPLICATION_ROLES.includes(user?.role) ? 'Search pages, applications, institutions…' : 'Search pages…'}
-            className="flex-1 py-4 text-sm bg-transparent outline-none placeholder:text-slate-400"
+            className="flex-1 py-5 text-base font-medium bg-transparent outline-none focus:outline-none focus-visible:outline-none placeholder:text-slate-400"
           />
-          <kbd className="hidden sm:inline text-[10px] font-semibold text-slate-400 border border-slate-200 rounded px-1.5 py-0.5">Esc</kbd>
+          <kbd className="hidden sm:inline text-[10px] font-bold text-slate-500 border border-slate-200 bg-white rounded-md px-2 py-1 shadow-xs">Esc</kbd>
         </div>
 
         <div id="palette-list" role="listbox" ref={listRef} className="max-h-80 overflow-y-auto p-2">
@@ -115,7 +117,7 @@ export function CommandPalette({ open, onClose }) {
           ) : (
             groups.map((g) => (
               <div key={g.title} role="group" aria-label={g.title}>
-                <p className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">{g.title}</p>
+                <p className="px-3 pt-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-700/70">{g.title}</p>
                 {g.items.map((item) => {
                   const index = results.indexOf(item);
                   const Icon = item.icon || FileText;
@@ -129,9 +131,9 @@ export function CommandPalette({ open, onClose }) {
                       aria-selected={isActive}
                       onMouseEnter={() => setActive(index)}
                       onClick={() => choose(item)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer ${isActive ? 'bg-emerald-50' : ''}`}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer border-l-4 transition-colors ${isActive ? 'bg-gradient-to-r from-emerald-50 to-white border-emerald-500' : 'border-transparent'}`}
                     >
-                      <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                      <span className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition ${isActive ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/30' : 'bg-slate-100 text-slate-500'}`}>
                         <Icon className="w-4 h-4" aria-hidden="true" />
                       </span>
                       <span className="flex-1 min-w-0">
@@ -148,10 +150,10 @@ export function CommandPalette({ open, onClose }) {
           )}
         </div>
 
-        <div className="flex items-center gap-4 px-4 py-2 border-t border-slate-100 bg-slate-50 text-[11px] text-slate-500">
-          <span><kbd className="font-semibold">↑↓</kbd> move</span>
-          <span><kbd className="font-semibold">Enter</kbd> open</span>
-          <span><kbd className="font-semibold">Esc</kbd> close</span>
+        <div className="flex items-center gap-4 px-5 py-2.5 border-t border-slate-100 bg-slate-50 text-[11px] text-slate-500">
+          {[['↑↓', 'move'], ['Enter', 'open'], ['Esc', 'close']].map(([k, t]) => (
+            <span key={k} className="inline-flex items-center gap-1.5"><kbd className="font-bold text-slate-600 bg-white border border-slate-200 rounded-md px-1.5 py-0.5 shadow-xs">{k}</kbd> {t}</span>
+          ))}
         </div>
       </div>
     </div>,

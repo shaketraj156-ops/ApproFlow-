@@ -31,7 +31,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' 
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gradient-to-b from-slate-900/70 to-emerald-950/60 animate-fade"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -42,10 +42,10 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' 
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className={`w-full ${maxWidth} max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-200 focus:outline-none animate-fadeIn`}
+        className={`w-full ${maxWidth} max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl shadow-emerald-900/30 ring-1 ring-white/20 border border-slate-200 focus:outline-none animate-fadeIn`}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50 sticky top-0">
-          <h3 id={titleId} className="text-base font-semibold text-slate-900">{title}</h3>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-emerald-50 via-white to-indigo-50/60 sticky top-0">
+          <h3 id={titleId} className="text-lg font-extrabold text-slate-900">{title}</h3>
           <button
             onClick={onClose}
             aria-label="Close dialog"
